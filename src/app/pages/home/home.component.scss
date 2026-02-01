@@ -28,6 +28,37 @@
     url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:%231a1a2e"/><stop offset="50%" style="stop-color:%23722F37"/><stop offset="100%" style="stop-color:%232d2d44"/></linearGradient></defs><rect fill="url(%23sky)" width="1200" height="800"/><circle cx="1000" cy="150" r="60" fill="%23f4e4bc" opacity="0.9"/><circle cx="200" cy="600" r="2" fill="%23fff" opacity="0.8"/><circle cx="400" cy="200" r="1.5" fill="%23fff" opacity="0.6"/><circle cx="800" cy="300" r="1" fill="%23fff" opacity="0.7"/><circle cx="600" cy="150" r="2" fill="%23fff" opacity="0.5"/><circle cx="100" cy="100" r="1.5" fill="%23fff" opacity="0.6"/><circle cx="900" cy="400" r="1" fill="%23fff" opacity="0.8"/><circle cx="300" cy="350" r="1.5" fill="%23fff" opacity="0.4"/><circle cx="700" cy="500" r="2" fill="%23fff" opacity="0.6"/><circle cx="1100" cy="250" r="1" fill="%23fff" opacity="0.7"/><circle cx="500" cy="80" r="1.5" fill="%23fff" opacity="0.5"/><path d="M0 650 Q300 580 600 620 T1200 600 L1200 800 L0 800 Z" fill="%231a1a1a" opacity="0.8"/><path d="M0 700 Q400 650 800 680 T1200 660 L1200 800 L0 800 Z" fill="%23242424"/></svg>');
   background-size: cover;
   background-position: center;
+
+  .road-lines {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 600px;
+    height: 400px;
+    transform: translateX(-50%) perspective(500px) rotateX(60deg);
+    overflow: hidden;
+
+    .line {
+      position: absolute;
+      left: 50%;
+      top: -100px;
+      width: 4px;
+      height: 60px;
+      background: rgba($ivory, 0.4);
+      transform: translateX(-50%);
+      animation: roadMotion 2s linear infinite;
+
+      &:nth-child(2) { animation-delay: 0.6s; }
+      &:nth-child(3) { animation-delay: 1.2s; }
+    }
+  }
+}
+
+@keyframes roadMotion {
+  from { top: -100px; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  to { top: 100%; opacity: 0; }
 }
 
 .hero-overlay {
@@ -1289,6 +1320,93 @@
   width: 1px;
   height: 50px;
   background: linear-gradient(180deg, transparent, rgba($gold, 0.3), transparent);
+}
+
+// ================================
+// INNOVATIVE: LIVE TERMINAL FEED
+// ================================
+.live-terminal-section {
+  background: $ink-black;
+  padding: 80px 20px;
+  display: flex;
+  justify-content: center;
+
+  .terminal-container {
+    max-width: 800px;
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+
+  .terminal-header {
+    background: #1a1a1a;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    font-family: $font-mono;
+    font-size: 0.75rem;
+    color: #666;
+
+    .terminal-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #00ff00;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #00ff00;
+        animation: blink 1.5s infinite;
+      }
+    }
+  }
+
+  .terminal-screen {
+    padding: 30px;
+    font-family: $font-mono;
+    color: #00ff00;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    min-height: 200px;
+
+    .feed-row {
+      margin-bottom: 10px;
+      opacity: 0;
+      animation: terminalRowFade 0.5s forwards;
+
+      &:nth-child(1) { animation-delay: 0.5s; }
+      &:nth-child(2) { animation-delay: 2s; }
+      &:nth-child(3) { animation-delay: 3.5s; }
+
+      .feed-time {
+        color: #666;
+        margin-right: 15px;
+      }
+    }
+
+    .feed-cursor {
+      display: inline-block;
+      animation: blink 1s infinite;
+    }
+  }
+}
+
+@keyframes terminalRowFade {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 // ================================

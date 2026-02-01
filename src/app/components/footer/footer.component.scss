@@ -225,6 +225,60 @@
     }
   }
 
+  .mailing-list {
+    margin-bottom: 30px;
+
+    .mailing-label {
+      display: block;
+      font-family: $font-classic;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      color: $gold;
+      margin-bottom: 10px;
+    }
+
+    .mailing-input-wrap {
+      display: flex;
+      gap: 0;
+      border: 1px solid rgba($gold, 0.3);
+      padding: 2px;
+      border-radius: 4px;
+
+      input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        padding: 10px;
+        font-family: $font-mono;
+        font-size: 0.8rem;
+        color: $ivory;
+
+        &:focus {
+          outline: none;
+        }
+
+        &::placeholder {
+          color: rgba($ivory, 0.3);
+        }
+      }
+
+      .mailing-btn {
+        background: $burgundy;
+        color: $ivory;
+        border: none;
+        padding: 0 20px;
+        font-family: $font-classic;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: $transition-elegant;
+
+        &:hover {
+          background: $burgundy-light;
+        }
+      }
+    }
+  }
+
   .club-stats {
     display: flex;
     gap: 25px;
