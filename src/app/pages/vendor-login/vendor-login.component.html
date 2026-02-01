@@ -1,0 +1,105 @@
+<div class="login-page page-enter">
+  <div class="login-container">
+    <!-- Decorative Side -->
+    <div class="decorative-side">
+      <div class="deco-content">
+        <div class="deco-badge">
+          <span class="badge-icon">🚛</span>
+        </div>
+        <h2 class="deco-title">Vendor Registry</h2>
+        <p class="deco-text">
+          Manage your fleet and serve the club.
+          Sign in to the vendor manifest.
+        </p>
+        <div class="deco-ornament">
+          <span>━━━⚓━━━</span>
+        </div>
+        <div class="deco-quote">
+          "The engine is the heart, the schedule is the soul."
+        </div>
+      </div>
+      <div class="deco-stamps">
+        <div class="stamp">VENDOR</div>
+        <div class="stamp">N.J.C.</div>
+      </div>
+    </div>
+
+    <!-- Login Form Side -->
+    <div class="form-side">
+      <div class="form-header">
+        <h1 class="form-title">Vendor Entry</h1>
+        <p class="form-subtitle">Enter your carrier credentials</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        @if (errorMessage()) {
+          <div class="error-message">
+            <span class="error-icon">⚠️</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="email">
+            <span class="label-icon">@</span>
+            <span>Vendor Email</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="vendor.contact@company.com"
+            [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          >
+          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+            <span class="field-error">{{ getEmailError() }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <span class="label-icon">*</span>
+            <span>Security Key</span>
+          </label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="••••••••"
+            [class.invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          >
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+            <span class="field-error">{{ getPasswordError() }}</span>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="loginForm.invalid || isLoading()"
+        >
+          @if (isLoading()) {
+            <span class="loading-spinner"></span>
+            <span>Verifying Carrier...</span>
+          } @else {
+            <span class="btn-icon">🚛</span>
+            <span>Access Manifest</span>
+          }
+        </button>
+      </form>
+
+      <div class="form-footer">
+        <div class="divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">Become a carrier?</span>
+          <span class="divider-line"></span>
+        </div>
+        <p class="partner-note">Contact Night Journey Club headquarters for partnership inquiries.</p>
+      </div>
+
+      <div class="back-link">
+        <a routerLink="/">← Return to Home</a>
+      </div>
+    </div>
+  </div>
+</div>

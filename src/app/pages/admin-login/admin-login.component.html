@@ -1,0 +1,105 @@
+<div class="login-page page-enter">
+  <div class="login-container">
+    <!-- Decorative Side -->
+    <div class="decorative-side">
+      <div class="deco-content">
+        <div class="deco-badge">
+          <span class="badge-icon">🏛️</span>
+        </div>
+        <h2 class="deco-title">High Command</h2>
+        <p class="deco-text">
+          Overseeing the Southern Routes.
+          Authorized personnel only.
+        </p>
+        <div class="deco-ornament">
+          <span>━━━⚜━━━</span>
+        </div>
+        <div class="deco-quote">
+          "Order in the night, precision in the dawn."
+        </div>
+      </div>
+      <div class="deco-stamps">
+        <div class="stamp">ADMIN</div>
+        <div class="stamp">H.Q.</div>
+      </div>
+    </div>
+
+    <!-- Login Form Side -->
+    <div class="form-side">
+      <div class="form-header">
+        <h1 class="form-title">Admin Terminal</h1>
+        <p class="form-subtitle">Secure administrative authentication</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        @if (errorMessage()) {
+          <div class="error-message">
+            <span class="error-icon">🔒</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="email">
+            <span class="label-icon">*</span>
+            <span>Admin Identifier</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="admin.id@njc-hq.gov"
+            [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          >
+          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+            <span class="field-error">{{ getEmailError() }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <span class="label-icon">*</span>
+            <span>Master Key</span>
+          </label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="••••••••"
+            [class.invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          >
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+            <span class="field-error">{{ getPasswordError() }}</span>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="submit-btn admin-btn"
+          [disabled]="loginForm.invalid || isLoading()"
+        >
+          @if (isLoading()) {
+            <span class="loading-spinner"></span>
+            <span>Establishing Secure Link...</span>
+          } @else {
+            <span class="btn-icon">🏛️</span>
+            <span>Authenticate</span>
+          }
+        </button>
+      </form>
+
+      <div class="form-footer">
+        <div class="divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">Security Protocol</span>
+          <span class="divider-line"></span>
+        </div>
+        <p class="admin-warning">Unauthorized access attempts are logged and reported to the Night Journey High Command.</p>
+      </div>
+
+      <div class="back-link">
+        <a routerLink="/">← Return to Home</a>
+      </div>
+    </div>
+  </div>
+</div>

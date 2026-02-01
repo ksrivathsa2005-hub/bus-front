@@ -1,0 +1,256 @@
+@use '../../variables' as *;
+
+.vintage-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: linear-gradient(180deg, $charcoal-dark 0%, rgba($charcoal-dark, 0.98) 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba($gold, 0.2);
+  transition: $transition-slow;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+
+  &.authenticated {
+    max-height: 120px;
+    opacity: 1;
+    padding: 15px 0;
+  }
+}
+
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+// Logo Section
+.logo-section {
+  text-decoration: none;
+
+  .logo-badge {
+    background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+    padding: 3px;
+    border-radius: 50px;
+    box-shadow: $shadow-vintage;
+
+    .badge-inner {
+      background: $charcoal-dark;
+      border-radius: 50px;
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba($gold, 0.3);
+    }
+
+    .badge-icon {
+      width: 28px;
+      height: 28px;
+      stroke: $mustard;
+      flex-shrink: 0;
+    }
+
+    .badge-text {
+      display: flex;
+      flex-direction: column;
+
+      .brand-name {
+        font-family: $font-display;
+        font-size: 1.1rem;
+        color: $ivory;
+        letter-spacing: 2px;
+      }
+
+      .brand-tagline {
+        font-family: $font-mono;
+        font-size: 0.65rem;
+        color: $mustard;
+        letter-spacing: 1px;
+      }
+    }
+  }
+}
+
+// User Greeting
+.user-greeting {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  .greeting-text {
+    font-family: $font-sans;
+    font-size: 0.75rem;
+    color: $charcoal-light;
+    font-style: italic;
+  }
+
+  .user-name {
+    font-family: $font-display;
+    font-size: 1rem;
+    color: $mustard;
+    letter-spacing: 1px;
+  }
+}
+
+// Navigation
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    text-decoration: none;
+    color: $ivory-cream;
+    font-family: $font-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+    transition: $transition-slow;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: $mustard;
+      transition: $transition-slow;
+      transform: translateX(-50%);
+    }
+
+    &:hover {
+      color: $mustard;
+      background: rgba($burgundy, 0.2);
+
+      &::before {
+        width: 80%;
+      }
+    }
+
+    &.active {
+      color: $mustard;
+      background: rgba($burgundy, 0.3);
+
+      &::before {
+        width: 100%;
+      }
+    }
+
+    &.special {
+      border: 1px dashed rgba($mustard, 0.4);
+
+      .nav-text {
+        font-style: italic;
+      }
+
+      &:hover {
+        border-color: $mustard;
+        box-shadow: 0 0 15px rgba($mustard, 0.2);
+      }
+    }
+
+    .nav-icon {
+      font-size: 1rem;
+    }
+  }
+}
+
+// Logout Button
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid rgba($burgundy-light, 0.5);
+  color: $burgundy-light;
+  font-family: $font-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: $transition-slow;
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba($burgundy, 0.2);
+    border-color: $burgundy-light;
+    color: $ivory;
+  }
+
+  .btn-icon {
+    font-size: 1rem;
+  }
+}
+
+// Header Ornament
+.header-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30px;
+  margin-top: 10px;
+
+  .ornament-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($gold, 0.3), transparent);
+  }
+
+  .ornament-diamond {
+    color: $gold;
+    font-size: 0.6rem;
+    margin: 0 15px;
+    opacity: 0.6;
+  }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .header-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .user-greeting {
+    display: none;
+  }
+
+  .main-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    .nav-item {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .main-nav .nav-text {
+    display: none;
+  }
+
+  .main-nav .nav-item {
+    padding: 10px;
+  }
+
+  .logo-section .badge-text .brand-name {
+    font-size: 0.9rem;
+  }
+}

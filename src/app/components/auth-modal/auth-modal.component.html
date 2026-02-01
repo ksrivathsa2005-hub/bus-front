@@ -1,0 +1,49 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Close Button -->
+    <button class="close-btn" (click)="closeModal()">&times;</button>
+
+    <!-- Decorative Top -->
+    <div class="modal-ornament top">
+      <span>&mdash;&mdash;&diams;&mdash;&mdash;</span>
+    </div>
+
+    <!-- Icon -->
+    <div class="modal-icon">
+      <span class="icon-bg">&bull;</span>
+    </div>
+
+    <!-- Title -->
+    <h2 class="modal-title">Journeys Require Identity</h2>
+
+    <!-- Message -->
+    <p class="modal-message">
+      Sign in to continue this ride.<br>
+      <span class="message-sub">The route awaits those who are known.</span>
+    </p>
+
+    <!-- Buttons -->
+    <div class="modal-actions">
+      <button class="btn-login" (click)="goToLogin()">
+        <span class="btn-icon">&rarr;</span>
+        <span class="btn-text">Login</span>
+      </button>
+
+      <div class="divider">
+        <span class="divider-line"></span>
+        <span class="divider-text">or</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <button class="btn-register" (click)="goToRegister()">
+        <span class="btn-icon">&rarr;</span>
+        <span class="btn-text">Join the Route</span>
+      </button>
+    </div>
+
+    <!-- Decorative Bottom -->
+    <div class="modal-ornament bottom">
+      <span class="quote">"Every traveler must first declare their name."</span>
+    </div>
+  </div>
+</div>
