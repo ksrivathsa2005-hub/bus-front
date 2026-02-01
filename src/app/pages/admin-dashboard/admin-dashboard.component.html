@@ -1,0 +1,459 @@
+<div class="admin-dashboard">
+  <!-- Admin Header -->
+  <header class="admin-header">
+    <div class="header-left">
+      <div class="admin-badge">
+        <span class="badge-icon">&diams;</span>
+        <span class="badge-text">HIGH COMMAND</span>
+      </div>
+      <h1 class="header-title">Night Journey Club - Administration</h1>
+    </div>
+    <div class="header-right">
+      @if (currentAdmin(); as admin) {
+        <div class="admin-info">
+          <span class="admin-name">{{ admin.name }}</span>
+          <span class="admin-role">{{ admin.role === 'super_admin' ? 'Super Admin' : 'Admin' }}</span>
+        </div>
+      }
+      <button class="logout-btn" (click)="logout()">
+        <span>Logout</span>
+        <span>&rarr;</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="admin-nav">
+    <button
+      class="nav-tab"
+      [class.active]="activeTab() === 'overview'"
+      (click)="switchTab('overview')">
+      <span class="tab-icon">&bull;</span>
+      <span>Overview</span>
+    </button>
+    <button
+      class="nav-tab"
+      [class.active]="activeTab() === 'users'"
+      (click)="switchTab('users')">
+      <span class="tab-icon">&bull;</span>
+      <span>Users ({{ stats().totalUsers }})</span>
+    </button>
+    <button
+      class="nav-tab"
+      [class.active]="activeTab() === 'vendors'"
+      (click)="switchTab('vendors')">
+      <span class="tab-icon">&bull;</span>
+      <span>Vendors ({{ stats().totalVendors }})</span>
+    </button>
+    <button
+      class="nav-tab"
+      [class.active]="activeTab() === 'buses'"
+      (click)="switchTab('buses')">
+      <span class="tab-icon">&bull;</span>
+      <span>Buses ({{ stats().totalBuses }})</span>
+    </button>
+    <button
+      class="nav-tab"
+      [class.active]="activeTab() === 'routes'"
+      (click)="switchTab('routes')">
+      <span class="tab-icon">&bull;</span>
+      <span>Routes ({{ stats().totalRoutes }})</span>
+    </button>
+    <button
+      class="nav-tab"
+      [class.active]="activeTab() === 'bookings'"
+      (click)="switchTab('bookings')">
+      <span class="tab-icon">&bull;</span>
+      <span>Bookings ({{ stats().totalBookings }})</span>
+    </button>
+  </nav>
+
+  <!-- Action Messages -->
+  @if (actionMessage()) {
+    <div class="action-message success">
+      <span class="msg-icon">&check;</span>
+      <span>{{ actionMessage() }}</span>
+    </div>
+  }
+  @if (actionError()) {
+    <div class="action-message error">
+      <span class="msg-icon">!</span>
+      <span>{{ actionError() }}</span>
+    </div>
+  }
+
+  <!-- Main Content -->
+  <main class="admin-content">
+    <!-- OVERVIEW TAB -->
+    @if (activeTab() === 'overview') {
+      <div class="overview-panel">
+        <div class="section-header">
+          <h2 class="section-title">Platform Overview</h2>
+          <p class="section-subtitle">Real-time statistics of the Night Journey Club</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card revenue">
+            <div class="stat-icon">&curren;</div>
+            <div class="stat-content">
+              <span class="stat-value">{{ formatCurrency(stats().totalRevenue) }}</span>
+              <span class="stat-label">Total Revenue</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">&bull;</div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats().totalUsers }}</span>
+              <span class="stat-label">Registered Users</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">&bull;</div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats().activeVendors }}/{{ stats().totalVendors }}</span>
+              <span class="stat-label">Active Vendors</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">&bull;</div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats().activeBuses }}/{{ stats().totalBuses }}</span>
+              <span class="stat-label">Active Buses</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">&bull;</div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats().confirmedBookings }}</span>
+              <span class="stat-label">Confirmed Bookings</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">&bull;</div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats().cancelledBookings }}</span>
+              <span class="stat-label">Cancelled Bookings</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="analytics-grid">
+          <!-- Most Travelled Routes -->
+          <div class="analytics-card">
+            <h3 class="card-title">Most Travelled Routes</h3>
+            <div class="analytics-list">
+              @for (route of mostTravelledRoutes(); track route.route; let i = $index) {
+                <div class="list-item">
+                  <span class="item-rank">{{ i + 1 }}</span>
+                  <span class="item-name">{{ route.route }}</span>
+                  <span class="item-value">{{ route.count }} trips</span>
+                </div>
+              } @empty {
+                <p class="empty-text">No booking data available yet.</p>
+              }
+            </div>
+          </div>
+
+          <!-- Peak Travel Dates -->
+          <div class="analytics-card">
+            <h3 class="card-title">Peak Travel Dates</h3>
+            <div class="analytics-list">
+              @for (date of peakTravelDates(); track date.date; let i = $index) {
+                <div class="list-item">
+                  <span class="item-rank">{{ i + 1 }}</span>
+                  <span class="item-name">{{ date.date }}</span>
+                  <span class="item-value">{{ date.count }} bookings</span>
+                </div>
+              } @empty {
+                <p class="empty-text">No booking data available yet.</p>
+              }
+            </div>
+          </div>
+
+          <!-- Bus Type Distribution -->
+          <div class="analytics-card">
+            <h3 class="card-title">Bus Type Distribution</h3>
+            <div class="analytics-list">
+              @for (type of busTypeDistribution(); track type.type) {
+                <div class="list-item">
+                  <span class="item-badge" [attr.data-type]="type.type.toLowerCase()">{{ type.type }}</span>
+                  <span class="item-value">{{ type.count }} buses</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Vendor Performance -->
+          <div class="analytics-card">
+            <h3 class="card-title">Vendor Performance</h3>
+            <div class="analytics-list">
+              @for (vendor of vendorPerformance(); track vendor.vendor) {
+                <div class="list-item">
+                  <span class="item-name">{{ vendor.vendor }}</span>
+                  <span class="item-value">{{ vendor.buses }} buses</span>
+                  <span class="status-badge" [class.enabled]="vendor.enabled" [class.disabled]="!vendor.enabled">
+                    {{ vendor.enabled ? 'Active' : 'Disabled' }}
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- USERS TAB -->
+    @if (activeTab() === 'users') {
+      <div class="data-panel">
+        <div class="section-header">
+          <h2 class="section-title">Registered Users</h2>
+          <p class="section-subtitle">All travelers registered on the platform (Read-only)</p>
+        </div>
+
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Registered</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of users(); track user.id) {
+                <tr>
+                  <td class="id-cell">{{ user.id }}</td>
+                  <td>{{ user.fullName }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.phone }}</td>
+                  <td>{{ user.city || 'N/A' }}</td>
+                  <td>{{ formatDate(user.createdAt) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="empty-cell">No users registered yet.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- VENDORS TAB -->
+    @if (activeTab() === 'vendors') {
+      <div class="data-panel">
+        <div class="section-header">
+          <h2 class="section-title">Vendor Management</h2>
+          <p class="section-subtitle">Enable or disable vendor access to the platform</p>
+        </div>
+
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Company</th>
+                <th>Owner</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Reg. No.</th>
+                <th>Buses</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (vendor of vendors(); track vendor.id) {
+                <tr [class.disabled-row]="!vendor.isEnabled">
+                  <td class="id-cell">{{ vendor.id }}</td>
+                  <td>{{ vendor.companyName }}</td>
+                  <td>{{ vendor.ownerName }}</td>
+                  <td>{{ vendor.email }}</td>
+                  <td>{{ vendor.phone }}</td>
+                  <td>{{ vendor.registrationNumber }}</td>
+                  <td>{{ vendor.busCount }}</td>
+                  <td>
+                    <span class="status-badge" [class.enabled]="vendor.isEnabled" [class.disabled]="!vendor.isEnabled">
+                      {{ vendor.isEnabled ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="action-btn"
+                      [class.disable]="vendor.isEnabled"
+                      [class.enable]="!vendor.isEnabled"
+                      (click)="toggleVendorStatus(vendor.id)">
+                      {{ vendor.isEnabled ? 'Disable' : 'Enable' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- BUSES TAB -->
+    @if (activeTab() === 'buses') {
+      <div class="data-panel">
+        <div class="section-header">
+          <h2 class="section-title">Bus Fleet Management</h2>
+          <p class="section-subtitle">Enable or disable buses from appearing in search results</p>
+        </div>
+
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Bus Name</th>
+                <th>Type</th>
+                <th>Route</th>
+                <th>Departure</th>
+                <th>Fare</th>
+                <th>Vendor</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bus of buses(); track bus.id) {
+                <tr [class.disabled-row]="bus.isEnabled === false">
+                  <td class="id-cell">{{ bus.id }}</td>
+                  <td>{{ bus.name }}</td>
+                  <td>
+                    <span class="type-badge" [attr.data-type]="bus.type.toLowerCase()">{{ bus.type }}</span>
+                  </td>
+                  <td>{{ bus.from }} &rarr; {{ bus.to }}</td>
+                  <td>{{ bus.departureTime }}</td>
+                  <td>{{ formatCurrency(bus.fare) }}</td>
+                  <td>{{ getVendorName(bus.vendorId) }}</td>
+                  <td>
+                    <span class="status-badge" [class.enabled]="bus.isEnabled !== false" [class.disabled]="bus.isEnabled === false">
+                      {{ bus.isEnabled !== false ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="action-btn"
+                      [class.disable]="bus.isEnabled !== false"
+                      [class.enable]="bus.isEnabled === false"
+                      (click)="toggleBusStatus(bus.id)">
+                      {{ bus.isEnabled !== false ? 'Disable' : 'Enable' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- ROUTES TAB -->
+    @if (activeTab() === 'routes') {
+      <div class="data-panel">
+        <div class="section-header">
+          <h2 class="section-title">Route Network</h2>
+          <p class="section-subtitle">All available routes in the Night Journey Club network</p>
+        </div>
+
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Distance</th>
+                <th>Duration</th>
+                <th>Buses on Route</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (route of routes(); track route.id) {
+                <tr>
+                  <td class="id-cell">{{ route.id }}</td>
+                  <td>{{ route.from }}</td>
+                  <td>{{ route.to }}</td>
+                  <td>{{ route.distance }} km</td>
+                  <td>{{ route.duration }}</td>
+                  <td>{{ route.buses.length }} buses</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- BOOKINGS TAB -->
+    @if (activeTab() === 'bookings') {
+      <div class="data-panel">
+        <div class="section-header">
+          <h2 class="section-title">All Bookings</h2>
+          <p class="section-subtitle">Platform-wide booking records (Read-only)</p>
+        </div>
+
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Bus</th>
+                <th>Route</th>
+                <th>Date</th>
+                <th>Seats</th>
+                <th>Fare</th>
+                <th>Status</th>
+                <th>Booked At</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (booking of bookings(); track booking.id) {
+                <tr [class.cancelled-row]="booking.status === 'cancelled'">
+                  <td class="id-cell">{{ booking.oderId }}</td>
+                  <td>{{ getUserName(booking.userId) }}</td>
+                  <td>{{ booking.busName }}</td>
+                  <td>{{ booking.from }} &rarr; {{ booking.to }}</td>
+                  <td>{{ booking.date }}</td>
+                  <td>{{ booking.seats.join(', ') }}</td>
+                  <td>{{ formatCurrency(booking.totalFare) }}</td>
+                  <td>
+                    <span class="status-badge"
+                      [class.confirmed]="booking.status === 'confirmed'"
+                      [class.cancelled]="booking.status === 'cancelled'">
+                      {{ booking.status | uppercase }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(booking.bookedAt) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="9" class="empty-cell">No bookings recorded yet.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </main>
+
+  <!-- Footer -->
+  <footer class="admin-footer">
+    <div class="footer-content">
+      <span class="footer-text">Night Journey Club - Administrative Portal</span>
+      <span class="footer-divider">&bull;</span>
+      <span class="footer-text">Established 1952</span>
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,108 @@
+<div class="login-page page-enter">
+  <div class="login-container">
+    <!-- Decorative Side -->
+    <div class="decorative-side">
+      <div class="deco-content">
+        <div class="deco-badge">
+          <span class="badge-icon">&bull;</span>
+        </div>
+        <h2 class="deco-title">Welcome Back, Traveler</h2>
+        <p class="deco-text">
+          The road remembers those who walk it.
+          Sign in to continue your journey.
+        </p>
+        <div class="deco-ornament">
+          <span>━━━◆━━━</span>
+        </div>
+        <div class="deco-quote">
+          "Those who return, carry wisdom."
+        </div>
+      </div>
+      <div class="deco-stamps">
+        <div class="stamp">1952</div>
+        <div class="stamp">N.J.C.</div>
+      </div>
+    </div>
+
+    <!-- Login Form Side -->
+    <div class="form-side">
+      <div class="form-header">
+        <h1 class="form-title">Sign In</h1>
+        <p class="form-subtitle">Enter your credentials to access the route</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        @if (errorMessage()) {
+          <div class="error-message">
+            <span class="error-icon">!</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="email">
+            <span class="label-icon">✉</span>
+            <span>Email Address</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="your.email@journey.com"
+            [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          >
+          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+            <span class="field-error">{{ getEmailError() }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <span class="label-icon">*</span>
+            <span>Password</span>
+          </label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="••••••••"
+            [class.invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          >
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+            <span class="field-error">{{ getPasswordError() }}</span>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="loginForm.invalid || isLoading()"
+        >
+          @if (isLoading()) {
+            <span class="loading-spinner"></span>
+            <span>Authenticating...</span>
+          } @else {
+            <span class="btn-icon">&rarr;</span>
+            <span>Enter the Route</span>
+          }
+        </button>
+      </form>
+
+      <div class="form-footer">
+        <div class="divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">New to the journey?</span>
+          <span class="divider-line"></span>
+        </div>
+        <a routerLink="/register" class="register-link">
+          <span class="link-icon">&rarr;</span>
+          <span>Join the Route</span>
+        </a>
+      </div>
+
+      <div class="back-link">
+        <a routerLink="/">← Return to Home</a>
+      </div>
+    </div>
+  </div>
+</div>

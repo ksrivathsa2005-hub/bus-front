@@ -1,0 +1,159 @@
+// Retro Color Palette
+$burgundy: #722F37;
+$burgundy-dark: #4A1F24;
+$burgundy-light: #9E4A54;
+$ivory: #FFFFF0;
+$ivory-cream: #F5F5DC;
+$mustard: #C49102;
+$mustard-light: #E5B84C;
+$mustard-dark: #8B6914;
+$charcoal: #36454F;
+$charcoal-dark: #1C2428;
+$charcoal-light: #4A5D6B;
+$sepia: #704214;
+$gold: #D4AF37;
+$parchment: #F1E9D2;
+$ink-black: #0D0D0D;
+
+// Typography
+$font-serif: 'Playfair Display', Georgia, serif;
+$font-sans: 'Cormorant Garamond', 'Times New Roman', serif;
+$font-display: 'Special Elite', cursive;
+$font-mono: 'Courier Prime', 'Courier New', monospace;
+$font-classic: 'Cinzel', serif;
+
+// Shadows
+$shadow-vintage: 0 4px 20px rgba(0, 0, 0, 0.3);
+$shadow-paper: 2px 2px 8px rgba(0, 0, 0, 0.15);
+$shadow-stamp: inset 0 0 10px rgba(0, 0, 0, 0.2);
+$shadow-emboss: inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+
+// Borders
+$border-ticket: 2px dashed $charcoal;
+$border-elegant: 1px solid rgba($gold, 0.3);
+$border-stamp: 3px double $burgundy;
+
+// Transitions
+$transition-slow: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+$transition-elegant: all 0.3s ease-in-out;
+
+// Mixins
+@mixin paper-texture {
+  background-color: $parchment;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.01) 2px,
+      rgba(0, 0, 0, 0.01) 4px
+    );
+}
+
+@mixin vintage-border {
+  border: 2px solid $burgundy;
+  box-shadow:
+    inset 0 0 0 4px $ivory,
+    inset 0 0 0 6px $burgundy;
+}
+
+@mixin ticket-punch {
+  position: relative;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: $charcoal-dark;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  &::before { left: -10px; }
+  &::after { right: -10px; }
+}
+
+@mixin stamp-effect {
+  border: 3px solid $burgundy;
+  border-radius: 50%;
+  padding: 15px 25px;
+  transform: rotate(-12deg);
+  opacity: 0.8;
+  font-family: $font-display;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+@mixin retro-button {
+  background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+  color: $ivory;
+  border: none;
+  padding: 12px 30px;
+  font-family: $font-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: $transition-slow;
+  box-shadow: $shadow-paper;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: $transition-slow;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-vintage;
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:disabled {
+    background: $charcoal-light;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+@mixin input-vintage {
+  background: rgba($ivory, 0.9);
+  border: 1px solid $charcoal-light;
+  padding: 12px 16px;
+  font-family: $font-sans;
+  font-size: 1rem;
+  color: $charcoal-dark;
+  transition: $transition-elegant;
+
+  &:focus {
+    outline: none;
+    border-color: $burgundy;
+    box-shadow: 0 0 0 3px rgba($burgundy, 0.1);
+  }
+
+  &::placeholder {
+    color: $charcoal-light;
+    font-style: italic;
+  }
+}
+
+@mixin section-divider {
+  width: 100%;
+  height: 30px;
+  background:
+    linear-gradient(90deg, transparent 0%, $charcoal 10%, $charcoal 90%, transparent 100%);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10'%3E%3Cpath d='M0,5 Q25,0 50,5 T100,5' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  margin: 40px auto;
+}

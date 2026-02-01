@@ -1,0 +1,145 @@
+<div class="my-bookings-page page-enter">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon">&diams;</div>
+      <h1 class="header-title">My Bookings</h1>
+      <p class="header-subtitle">Your journey ledger</p>
+    </div>
+    <div class="header-ornament">&mdash;&mdash;&diams;&mdash;&mdash;</div>
+  </div>
+
+  <div class="page-content">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading your journeys...</p>
+      </div>
+    } @else if (bookings().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">&mdash;</div>
+        <h2 class="empty-title">No Journeys Yet</h2>
+        <p class="empty-text">
+          Your travel ledger is empty.<br>
+          Book your first journey to begin the adventure.
+        </p>
+        <a routerLink="/" class="btn-book">Search Routes</a>
+      </div>
+    } @else {
+      <!-- Messages -->
+      @if (cancellationMessage()) {
+        <div class="success-message">
+          <span class="success-icon">&check;</span>
+          <span>{{ cancellationMessage() }}</span>
+        </div>
+      }
+
+      @if (cancellationError()) {
+        <div class="error-message">
+          <span class="error-icon">!</span>
+          <span>{{ cancellationError() }}</span>
+        </div>
+      }
+
+      <!-- Stats -->
+      <div class="booking-stats">
+        <div class="stat-card">
+          <span class="stat-number">{{ bookings().length }}</span>
+          <span class="stat-label">Total Bookings</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ confirmedBookings.length }}</span>
+          <span class="stat-label">Confirmed</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ cancelledBookings.length }}</span>
+          <span class="stat-label">Cancelled</span>
+        </div>
+      </div>
+
+      <!-- Bookings List -->
+      <div class="bookings-list">
+        @for (booking of bookings(); track booking.id) {
+          <div class="booking-ticket" [class.cancelled]="booking.status === 'cancelled'">
+            <!-- Ticket Left Section -->
+            <div class="ticket-main">
+              <div class="ticket-header">
+                <div class="bus-info">
+                  <span class="bus-name">{{ booking.busName }}</span>
+                  <span class="booking-id">{{ booking.oderId }}</span>
+                </div>
+                <div class="status-badge" [class]="booking.status">
+                  {{ booking.status | uppercase }}
+                </div>
+              </div>
+
+              <div class="route-section">
+                <div class="route-point">
+                  <span class="time">{{ booking.departureTime }}</span>
+                  <span class="city">{{ booking.from }}</span>
+                </div>
+                <div class="route-line">
+                  <span class="line"></span>
+                  <span class="icon">→</span>
+                  <span class="line"></span>
+                </div>
+                <div class="route-point">
+                  <span class="time">{{ booking.arrivalTime }}</span>
+                  <span class="city">{{ booking.to }}</span>
+                </div>
+              </div>
+
+              <div class="ticket-details">
+                <div class="detail">
+                  <span class="label">Date</span>
+                  <span class="value">{{ formatDate(booking.date) }}</span>
+                </div>
+                <div class="detail">
+                  <span class="label">Seats</span>
+                  <span class="value seats">
+                    @for (seat of booking.seats; track seat) {
+                      <span class="seat-badge">{{ seat }}</span>
+                    }
+                  </span>
+                </div>
+                <div class="detail">
+                  <span class="label">Passengers</span>
+                  <span class="value">{{ booking.passengers.length }}</span>
+                </div>
+              </div>
+
+              <div class="ticket-footer">
+                <span class="booked-at">Booked: {{ formatBookedAt(booking.bookedAt) }}</span>
+                @if (booking.status === 'confirmed') {
+                  @if (isPastJourney(booking)) {
+                    <span class="journey-status past">Journey Completed</span>
+                  } @else {
+                    <button class="cancel-btn" (click)="cancelBooking(booking)">
+                      Cancel Booking
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+
+            <!-- Ticket Right Section -->
+            <div class="ticket-stub">
+              <div class="stub-content">
+                <div class="fare-label">Total Fare</div>
+                <div class="fare-amount">₹{{ booking.totalFare }}</div>
+                <div class="stub-ornament">◆</div>
+                <a [routerLink]="['/booking-confirmation', booking.id]" class="view-link">
+                  View Ticket
+                </a>
+              </div>
+            </div>
+
+            <!-- Punch Holes -->
+            <div class="punch-hole top"></div>
+            <div class="punch-hole bottom"></div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

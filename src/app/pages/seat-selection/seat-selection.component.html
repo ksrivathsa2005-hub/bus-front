@@ -1,0 +1,304 @@
+<div class="seat-selection-page page-enter">
+  @if (bus) {
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <a routerLink="/search" [queryParams]="{from: bus.from, to: bus.to, date: date}" class="back-link">
+          ← Back to Results
+        </a>
+        <div class="bus-info">
+          <h1 class="bus-name">{{ bus.name }}</h1>
+          <div class="route-info">
+            <span>{{ bus.from }}</span>
+            <span class="arrow">→</span>
+            <span>{{ bus.to }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Steps Indicator -->
+      <div class="steps-indicator">
+        <div class="step" [class.active]="currentStep() === 'seats'" [class.completed]="currentStep() !== 'seats'">
+          <span class="step-num">1</span>
+          <span class="step-label">Select Seats</span>
+        </div>
+        <div class="step-line" [class.active]="currentStep() !== 'seats'"></div>
+        <div class="step" [class.active]="currentStep() === 'details'" [class.completed]="currentStep() === 'confirm'">
+          <span class="step-num">2</span>
+          <span class="step-label">Passenger Details</span>
+        </div>
+        <div class="step-line" [class.active]="currentStep() === 'confirm'"></div>
+        <div class="step" [class.active]="currentStep() === 'confirm'">
+          <span class="step-num">3</span>
+          <span class="step-label">Confirm</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Step 1: Seat Selection -->
+      @if (currentStep() === 'seats') {
+        <div class="seat-selection-container">
+          <div class="bus-layout-card">
+            <div class="layout-header">
+              <h2>Select Your Seats</h2>
+              <p>Choose up to 6 seats for your journey</p>
+            </div>
+
+            <!-- Legend -->
+            <div class="seat-legend">
+              <div class="legend-item">
+                <div class="legend-seat available"></div>
+                <span>Available</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-seat selected"></div>
+                <span>Selected</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-seat booked"></div>
+                <span>Booked</span>
+              </div>
+            </div>
+
+            <!-- Bus Layout -->
+            <div class="bus-layout">
+              <div class="bus-front">
+                <span class="driver-icon">&bull;</span>
+                <span>Driver</span>
+              </div>
+
+              <div class="seats-container">
+                @for (row of getSeatRows(); track $index) {
+                  <div class="seat-row">
+                    @for (seat of row; track seat.id) {
+                      <button
+                        class="seat"
+                        [class.booked]="seat.isBooked"
+                        [class.selected]="isSeatSelected(seat)"
+                        [class.window]="seat.type === 'window'"
+                        [disabled]="seat.isBooked"
+                        (click)="toggleSeat(seat)"
+                      >
+                        <span class="seat-number">{{ seat.number }}</span>
+                      </button>
+                      @if ($index === 1 || $index === 4) {
+                        <div class="aisle"></div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Selection Summary -->
+          <div class="selection-summary">
+            <div class="summary-card">
+              <h3 class="summary-title">Your Selection</h3>
+
+              @if (validationError() && currentStep() === 'seats') {
+                <div class="validation-error">
+                  <span class="error-icon">!</span>
+                  <span>{{ validationError() }}</span>
+                </div>
+              }
+
+              @if (selectedSeats().length === 0) {
+                <p class="empty-selection">No seats selected yet</p>
+              } @else {
+                <div class="selected-seats-list">
+                  @for (seat of selectedSeats(); track seat.id) {
+                    <div class="selected-seat-item">
+                      <span class="seat-badge">{{ seat.number }}</span>
+                      <span class="seat-type">{{ seat.type }}</span>
+                      <span class="seat-price">Rs.{{ seat.price }}</span>
+                    </div>
+                  }
+                </div>
+
+                <div class="fare-breakdown">
+                  <div class="fare-row">
+                    <span>Base Fare ({{ selectedSeats().length }} seats)</span>
+                    <span>Rs.{{ totalFare }}</span>
+                  </div>
+                  <div class="fare-row total">
+                    <span>Total</span>
+                    <span>Rs.{{ totalFare }}</span>
+                  </div>
+                </div>
+              }
+
+              <button
+                class="proceed-btn"
+                [disabled]="selectedSeats().length === 0"
+                (click)="proceedToDetails()"
+              >
+                Proceed to Details
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Step 2: Passenger Details -->
+      @if (currentStep() === 'details') {
+        <div class="passenger-details-container">
+          <div class="details-card">
+            <h2 class="details-title">Passenger Details</h2>
+            <p class="details-subtitle">Enter details for each passenger (Age 5+ required for independent travel)</p>
+
+            @if (validationError()) {
+              <div class="validation-error">
+                <span class="error-icon">!</span>
+                <span>{{ validationError() }}</span>
+              </div>
+            }
+
+            <form [formGroup]="passengerForm">
+              <div formArrayName="passengers">
+                @for (passenger of passengersArray.controls; track $index; let i = $index) {
+                  <div class="passenger-card" [formGroupName]="i">
+                    <div class="passenger-header">
+                      <span class="passenger-num">Passenger {{ i + 1 }}</span>
+                      <span class="seat-badge">Seat {{ passenger.get('seatNumber')?.value }}</span>
+                    </div>
+
+                    <div class="passenger-form">
+                      <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input
+                          type="text"
+                          formControlName="name"
+                          placeholder="Enter full name"
+                          [class.invalid]="passenger.get('name')?.invalid && passenger.get('name')?.touched"
+                        >
+                        @if (passenger.get('name')?.invalid && passenger.get('name')?.touched) {
+                          <span class="field-error">{{ getPassengerNameError(i) }}</span>
+                        }
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label>Age <span class="required">*</span></label>
+                          <input
+                            type="number"
+                            formControlName="age"
+                            placeholder="Age (5+)"
+                            min="1"
+                            max="120"
+                            [class.invalid]="passenger.get('age')?.invalid && passenger.get('age')?.touched"
+                          >
+                          @if (passenger.get('age')?.invalid && passenger.get('age')?.touched) {
+                            <span class="field-error">{{ getPassengerAgeError(i) }}</span>
+                          }
+                        </div>
+
+                        <div class="form-group">
+                          <label>Gender <span class="required">*</span></label>
+                          <select
+                            formControlName="gender"
+                            [class.invalid]="passenger.get('gender')?.invalid && passenger.get('gender')?.touched"
+                          >
+                            <option value="">Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                          </select>
+                          @if (passenger.get('gender')?.invalid && passenger.get('gender')?.touched) {
+                            <span class="field-error">{{ getPassengerGenderError(i) }}</span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </form>
+
+            <div class="age-notice">
+              <span class="notice-icon">i</span>
+              <span>Children below 5 years of age must be accompanied by an adult guardian on the same booking.</span>
+            </div>
+
+            <div class="details-actions">
+              <button class="back-btn" (click)="goBack()">&larr; Back</button>
+              <button class="proceed-btn" (click)="proceedToConfirm()">Review Booking</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Step 3: Confirmation -->
+      @if (currentStep() === 'confirm') {
+        <div class="confirmation-container">
+          <div class="confirm-card">
+            <h2 class="confirm-title">Review Your Booking</h2>
+
+            <div class="booking-summary">
+              <div class="summary-section">
+                <h3>Journey Details</h3>
+                <div class="detail-row">
+                  <span class="label">Bus</span>
+                  <span class="value">{{ bus.name }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Route</span>
+                  <span class="value">{{ bus.from }} → {{ bus.to }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Date</span>
+                  <span class="value">{{ date }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Departure</span>
+                  <span class="value">{{ bus.departureTime }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Arrival</span>
+                  <span class="value">{{ bus.arrivalTime }}</span>
+                </div>
+              </div>
+
+              <div class="summary-section">
+                <h3>Passengers</h3>
+                @for (passenger of passengerForm.value.passengers; track $index) {
+                  <div class="passenger-summary">
+                    <span class="seat-badge">{{ passenger.seatNumber }}</span>
+                    <span class="name">{{ passenger.name }}</span>
+                    <span class="info">{{ passenger.age }}y, {{ passenger.gender }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="summary-section total">
+                <div class="total-row">
+                  <span>Total Amount</span>
+                  <span class="amount">₹{{ totalFare }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="confirm-actions">
+              <button class="back-btn" (click)="goBack()">&larr; Modify</button>
+              <button class="confirm-btn" (click)="confirmBooking()" [disabled]="isLoading()">
+                @if (isLoading()) {
+                  <span class="loading-spinner"></span>
+                  <span>Processing...</span>
+                } @else {
+                  <span>&check;</span>
+                  <span>Confirm Booking</span>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="not-found">
+      <h2>Bus not found</h2>
+      <a routerLink="/">Return to Home</a>
+    </div>
+  }
+</div>

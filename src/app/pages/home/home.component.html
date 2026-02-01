@@ -1,0 +1,364 @@
+<div class="home-page page-enter">
+  <!-- Cinematic Hero Section -->
+  <section class="hero-section">
+    <div class="hero-bg">
+      <div class="hero-overlay"></div>
+      <div class="hero-grain"></div>
+    </div>
+
+    <div class="hero-content">
+      <!-- Vintage Badge -->
+      <div class="vintage-emblem font-classic">
+        <div class="emblem-outer">
+          <div class="emblem-inner">
+            <span class="emblem-est">Established</span>
+            <span class="emblem-year">1952</span>
+          </div>
+        </div>
+        <div class="emblem-banner">
+          <span>Night Journey Club</span>
+        </div>
+      </div>
+
+      <h1 class="hero-title">
+        <span class="title-small">Where Every</span>
+        <span class="title-main">JOURNEY</span>
+        <span class="title-script">Becomes Legend</span>
+      </h1>
+
+      <p class="hero-tagline">
+        Traversing the Southern Routes Since Half a Century
+      </p>
+
+      <div class="hero-divider">
+        <span class="divider-line"></span>
+        <span class="divider-diamond"></span>
+        <span class="divider-line"></span>
+      </div>
+
+      <a href="#search" class="hero-cta">
+        <span class="cta-text">Book Your Passage</span>
+        <span class="cta-arrow">&darr;</span>
+      </a>
+    </div>
+
+      <div class="hero-stamps font-classic">
+        <div class="stamp stamp-1">
+          <span class="stamp-text">VERIFIED</span>
+          <span class="stamp-sub">CARRIER</span>
+        </div>
+        <div class="stamp stamp-2">
+          <span class="stamp-text">PREMIUM</span>
+          <span class="stamp-sub">SERVICE</span>
+        </div>
+      </div>
+  </section>
+
+  <!-- Announcement Banner -->
+  <div class="announcement-banner">
+    <div class="banner-content">
+      <span class="banner-icon">&bull;</span>
+      <span class="banner-text">Night Express Routes Now Available</span>
+      <span class="banner-separator">&mdash;</span>
+      <span class="banner-text">Book Early for Best Seats</span>
+      <span class="banner-separator">&mdash;</span>
+      <span class="banner-text">Member Discounts Apply</span>
+      <span class="banner-icon">&bull;</span>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <section class="search-section" id="search">
+    <div class="search-card">
+      <div class="card-corner tl"></div>
+      <div class="card-corner tr"></div>
+      <div class="card-corner bl"></div>
+      <div class="card-corner br"></div>
+
+      <div class="search-header">
+        <span class="header-ornament">&laquo;</span>
+        <h2 class="search-title">Plan Your Voyage</h2>
+        <span class="header-ornament">&raquo;</span>
+      </div>
+      <p class="search-subtitle">Select your origin and destination</p>
+
+      <div class="search-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <span class="label-text">Departure City</span>
+            </label>
+            <div class="select-wrapper">
+              <select [(ngModel)]="fromCity">
+                <option value="">Choose Origin</option>
+                @for (city of cities; track city.id) {
+                  <option [value]="city.name">{{ city.name }}</option>
+                }
+              </select>
+              <span class="select-arrow"></span>
+            </div>
+          </div>
+
+          <button class="swap-btn" (click)="swapCities()" type="button" title="Swap Cities">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 16l-4-4 4-4M17 8l4 4-4 4M3 12h18"/>
+            </svg>
+          </button>
+
+          <div class="form-group">
+            <label>
+              <span class="label-text">Arrival City</span>
+            </label>
+            <div class="select-wrapper">
+              <select [(ngModel)]="toCity">
+                <option value="">Choose Destination</option>
+                @for (city of cities; track city.id) {
+                  <option [value]="city.name" [disabled]="city.name === fromCity">{{ city.name }}</option>
+                }
+              </select>
+              <span class="select-arrow"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="label-text">Travel Date</span>
+            </label>
+            <input type="date" [(ngModel)]="journeyDate" [min]="minDate" class="date-input">
+          </div>
+        </div>
+
+        <button class="search-btn" (click)="searchBuses()">
+          <span class="btn-text">Search Available Routes</span>
+          <span class="btn-arrow">&rarr;</span>
+        </button>
+
+        @if (searchError()) {
+          <div class="search-error">
+            <span class="error-icon">!</span>
+            <span class="error-text">{{ searchError() }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="search-footer">
+        <span class="footer-quote">"The night awaits those who dare to travel"</span>
+      </div>
+    </div>
+
+    <!-- Quick Manifest Entry (Login) -->
+    @if (!isAuthenticated()) {
+      <div class="quick-login-card">
+        <div class="card-header">
+          <span class="header-label">QUICK MANIFEST ENTRY</span>
+          <div class="header-line"></div>
+        </div>
+
+        <div class="login-form">
+          <div class="form-group">
+            <label>Traveler Email</label>
+            <input type="email" [(ngModel)]="loginEmail" placeholder="Enter registered email">
+          </div>
+          <div class="form-group">
+            <label>Manifest Signature</label>
+            <input type="password" [(ngModel)]="loginPassword" placeholder="••••••••">
+          </div>
+          <button class="login-btn" (click)="onQuickLogin()">
+            <span>Sign Manifest</span>
+          </button>
+        </div>
+
+        @if (loginError) {
+          <div class="login-error">
+            <span class="error-icon">!</span>
+            <span class="error-text">{{ loginError }}</span>
+          </div>
+        }
+
+        <div class="card-footer">
+          <p>New to the route? <a (click)="showAuthModal.set(true)">Request Membership</a></p>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Routes Showcase -->
+  <section class="routes-section">
+    <div class="section-header">
+      <div class="header-line"></div>
+      <div class="header-content">
+        <span class="header-sub">Discover</span>
+        <h2 class="section-title">Popular Routes</h2>
+      </div>
+      <div class="header-line"></div>
+    </div>
+
+    <div class="routes-grid">
+      @for (route of popularRoutes; track route.id; let i = $index) {
+        <div class="route-card" (click)="selectRoute(route.from, route.to)" [style.animation-delay]="i * 0.1 + 's'">
+          <div class="route-number">{{ (i + 1).toString().padStart(2, '0') }}</div>
+          <div class="route-content">
+            <div class="route-cities">
+              <span class="city-from">{{ route.from }}</span>
+              <span class="route-connector">
+                <span class="connector-line"></span>
+                <span class="connector-arrow">&rarr;</span>
+                <span class="connector-line"></span>
+              </span>
+              <span class="city-to">{{ route.to }}</span>
+            </div>
+            <div class="route-meta">
+              <span class="meta-item">
+                <span class="meta-label">Distance</span>
+                <span class="meta-value">{{ route.distance }} km</span>
+              </span>
+              <span class="meta-divider">&bull;</span>
+              <span class="meta-item">
+                <span class="meta-label">Duration</span>
+                <span class="meta-value">{{ route.duration }}</span>
+              </span>
+            </div>
+            <div class="route-availability">
+              {{ route.buses.length }} departures daily
+            </div>
+          </div>
+          <div class="route-action">
+            <span class="action-text">View</span>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="features-bg"></div>
+    <div class="features-content">
+      <div class="section-header light">
+        <span class="header-sub">Why Choose Us</span>
+        <h2 class="section-title">The Night Journey Promise</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="32" cy="32" r="28"/>
+              <path d="M32 12v20l12 8"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Overnight Express</h3>
+          <p class="feature-desc">Travel while the world sleeps. Arrive refreshed at dawn.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="8" y="16" width="48" height="32" rx="4"/>
+              <path d="M16 28h32M16 36h24"/>
+              <circle cx="48" cy="36" r="4"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Secure Booking</h3>
+          <p class="feature-desc">Your passage, your privacy. Protected at every turn.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M8 48l24-32 24 32H8z"/>
+              <path d="M32 28v8M32 40v2"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Instant Tickets</h3>
+          <p class="feature-desc">No queues, no delays. Your ticket, delivered instantly.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M32 8l6 18h18l-14 11 5 19-15-12-15 12 5-19L8 26h18z"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Premium Fleet</h3>
+          <p class="feature-desc">Where vintage charm meets modern luxury.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonial/Quote Section -->
+  <section class="quote-section">
+    <div class="quote-container">
+      <div class="quote-mark open">&ldquo;</div>
+      <blockquote class="quote-text">
+        Not all who wander are lost, but all who travel with us arrive on time.
+      </blockquote>
+      <div class="quote-mark close">&rdquo;</div>
+      <cite class="quote-author">&mdash; The Night Journey Creed</cite>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  @if (!isAuthenticated()) {
+    <section class="cta-section">
+      <div class="cta-card">
+        <div class="cta-bg-pattern"></div>
+        <div class="cta-content">
+          <div class="cta-badge font-classic">
+            <span class="badge-text">Join</span>
+            <span class="badge-main">N.J.C.</span>
+          </div>
+          <div class="cta-text-content">
+            <h2 class="cta-title">Become a Member</h2>
+            <p class="cta-description">
+              Join the Night Journey Club and unlock exclusive routes,
+              personalized service, and access to the legendary Route Map.
+            </p>
+            <div class="cta-buttons">
+              <a routerLink="/register" class="btn-primary">
+                <span>Join the Club</span>
+              </a>
+              <a routerLink="/login" class="btn-secondary">
+                <span>Already a Member?</span>
+              </a>
+            </div>
+          </div>
+        </div>
+          <div class="cta-stamp font-classic">
+            <span>MEMBERS</span>
+            <span>ONLY</span>
+          </div>
+      </div>
+    </section>
+  }
+
+  <!-- Statistics Bar -->
+  <section class="stats-section font-classic">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-number">72</span>
+        <span class="stat-label">Years of Service</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-number">6</span>
+        <span class="stat-label">Major Cities</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-number">10</span>
+        <span class="stat-label">Active Routes</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-number">50K+</span>
+        <span class="stat-label">Happy Travelers</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+@if (showAuthModal()) {
+  <app-auth-modal (close)="showAuthModal.set(false)"></app-auth-modal>
+}

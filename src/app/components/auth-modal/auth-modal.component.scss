@@ -1,0 +1,215 @@
+@use '../../variables' as *;
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba($ink-black, 0.9);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  @include paper-texture;
+  color: $charcoal-dark;
+  max-width: 450px;
+  width: 90%;
+  padding: 40px;
+  position: relative;
+  border-radius: 4px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba($burgundy, 0.2);
+  animation: slideUp 0.4s ease-out;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border: 1px solid rgba($burgundy, 0.2);
+    pointer-events: none;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: $charcoal-light;
+  cursor: pointer;
+  transition: $transition-elegant;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+
+  &:hover {
+    color: $burgundy;
+    background: rgba($burgundy, 0.1);
+  }
+}
+
+.modal-ornament {
+  text-align: center;
+
+  &.top {
+    margin-bottom: 25px;
+    color: $gold;
+    font-size: 0.9rem;
+    opacity: 0.6;
+  }
+
+  &.bottom {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px dashed rgba($burgundy, 0.3);
+
+    .quote {
+      font-family: $font-serif;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: $charcoal-light;
+    }
+  }
+}
+
+.modal-icon {
+  text-align: center;
+  margin-bottom: 20px;
+
+  .icon-bg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+    border-radius: 50%;
+    font-size: 2.5rem;
+    box-shadow: $shadow-vintage;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.modal-title {
+  font-family: $font-display;
+  font-size: 1.5rem;
+  text-align: center;
+  color: $charcoal-dark;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+}
+
+.modal-message {
+  text-align: center;
+  font-family: $font-sans;
+  font-size: 1rem;
+  color: $charcoal;
+  line-height: 1.8;
+  margin-bottom: 30px;
+
+  .message-sub {
+    font-style: italic;
+    color: $charcoal-light;
+    font-size: 0.9rem;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.btn-login, .btn-register {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 4px;
+  font-family: $font-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: $transition-slow;
+}
+
+.btn-login {
+  background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+  color: $ivory;
+  box-shadow: $shadow-paper;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-vintage;
+  }
+}
+
+.btn-register {
+  background: transparent;
+  color: $charcoal-dark;
+  border: 2px solid $charcoal;
+
+  &:hover {
+    background: $charcoal-dark;
+    color: $ivory;
+    border-color: $charcoal-dark;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 5px 0;
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($charcoal, 0.3), transparent);
+  }
+
+  .divider-text {
+    font-family: $font-serif;
+    font-style: italic;
+    color: $charcoal-light;
+    font-size: 0.85rem;
+  }
+}

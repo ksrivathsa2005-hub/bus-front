@@ -1,0 +1,458 @@
+@use '../../variables' as *;
+
+.my-profile-page {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+// Profile Header
+.profile-header {
+  position: relative;
+  padding: 80px 20px 60px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 50%, $charcoal-dark 100%);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L30 60M0 30L60 30' stroke='%23fff' stroke-width='0.3' opacity='0.1'/%3E%3C/svg%3E");
+  }
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, $mustard 0%, $gold 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border: 4px solid rgba($ivory, 0.2);
+
+  .avatar-letter {
+    font-family: $font-display;
+    font-size: 3.5rem;
+    color: $charcoal-dark;
+  }
+}
+
+.user-name {
+  font-family: $font-display;
+  font-size: 2.2rem;
+  color: $ivory;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.user-email {
+  font-family: $font-mono;
+  font-size: 0.95rem;
+  color: rgba($ivory, 0.7);
+  margin-bottom: 20px;
+}
+
+.member-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 25px;
+  background: rgba($ivory, 0.1);
+  border: 1px solid rgba($gold, 0.3);
+  border-radius: 50px;
+
+  .badge-icon {
+    font-size: 1.2rem;
+  }
+
+  .badge-text {
+    font-family: $font-serif;
+    font-size: 0.9rem;
+    color: $gold;
+    letter-spacing: 1px;
+  }
+}
+
+// Profile Content
+.profile-content {
+  max-width: 800px;
+  margin: -30px auto 0;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+// Stats Row
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  @include paper-texture;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-radius: 4px;
+  box-shadow: $shadow-paper;
+
+  .stat-icon {
+    font-size: 2rem;
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+
+    .stat-value {
+      font-family: $font-display;
+      font-size: 1.1rem;
+      color: $charcoal-dark;
+      letter-spacing: 1px;
+    }
+
+    .stat-label {
+      font-family: $font-sans;
+      font-size: 0.75rem;
+      color: $charcoal-light;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+// Success Message
+.success-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  color: #28a745;
+  font-family: $font-sans;
+
+  .success-icon {
+    width: 24px;
+    height: 24px;
+    background: #28a745;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+}
+
+// Error Message
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background: rgba($burgundy, 0.1);
+  border: 1px solid rgba($burgundy, 0.3);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  color: $burgundy-dark;
+  font-family: $font-sans;
+
+  .error-icon {
+    width: 24px;
+    height: 24px;
+    background: $burgundy;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+}
+
+.field-error {
+  display: block;
+  color: $burgundy;
+  font-family: $font-sans;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.route-error {
+  margin-top: 10px;
+  display: block;
+}
+
+.form-group {
+  input.invalid,
+  select.invalid {
+    border-color: $burgundy !important;
+    background: rgba($burgundy, 0.03);
+  }
+
+  .required {
+    color: $burgundy;
+    font-weight: bold;
+  }
+}
+
+// Profile Card
+.profile-card {
+  @include paper-texture;
+  padding: 35px;
+  border-radius: 4px;
+  box-shadow: $shadow-vintage;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    border: 1px solid rgba($burgundy, 0.15);
+    pointer-events: none;
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba($charcoal, 0.1);
+
+  .card-title {
+    font-family: $font-display;
+    font-size: 1.5rem;
+    color: $charcoal-dark;
+    letter-spacing: 2px;
+  }
+
+  .edit-btn {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid $charcoal;
+    color: $charcoal-dark;
+    font-family: $font-sans;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: $transition-elegant;
+    border-radius: 4px;
+
+    &:hover {
+      background: $charcoal-dark;
+      color: $ivory;
+    }
+  }
+}
+
+.form-section {
+  margin-bottom: 30px;
+
+  .section-title {
+    font-family: $font-display;
+    font-size: 0.9rem;
+    color: $burgundy;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-left: 15px;
+    border-left: 3px solid $burgundy;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+
+  &.full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: $font-serif;
+    font-size: 0.85rem;
+    color: $charcoal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 14px 16px;
+    background: $ivory;
+    border: 2px solid rgba($charcoal, 0.2);
+    font-family: $font-sans;
+    font-size: 1rem;
+    color: $charcoal-dark;
+    border-radius: 4px;
+    transition: $transition-elegant;
+
+    &:focus {
+      outline: none;
+      border-color: $burgundy;
+      box-shadow: 0 0 0 3px rgba($burgundy, 0.1);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .display-value {
+    padding: 14px 16px;
+    background: rgba($charcoal, 0.03);
+    border: 1px solid rgba($charcoal, 0.1);
+    border-radius: 4px;
+    font-family: $font-sans;
+    color: $charcoal-dark;
+
+    &.locked {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: $charcoal-light;
+    }
+
+    &.bio {
+      font-style: italic;
+      line-height: 1.6;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px dashed rgba($charcoal, 0.2);
+  margin-top: 10px;
+}
+
+.save-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 30px;
+  background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+  color: $ivory;
+  border: none;
+  font-family: $font-display;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: $transition-slow;
+  border-radius: 4px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba($burgundy, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .loading-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba($ivory, 0.3);
+    border-top-color: $ivory;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Profile Quote
+.profile-quote {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 40px;
+  padding: 30px;
+  text-align: center;
+
+  .quote-mark {
+    font-family: $font-display;
+    font-size: 3rem;
+    color: $burgundy;
+    opacity: 0.4;
+    line-height: 1;
+  }
+
+  .quote-text {
+    font-family: $font-serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: $charcoal-light;
+    line-height: 1.6;
+    max-width: 500px;
+  }
+}
+
+// Responsive
+@media (max-width: 700px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .profile-quote {
+    flex-direction: column;
+    align-items: center;
+  }
+}

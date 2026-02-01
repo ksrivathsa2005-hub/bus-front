@@ -1,0 +1,231 @@
+<div class="register-page page-enter">
+  <div class="register-container">
+    <!-- Progress Indicator -->
+    <div class="progress-section">
+      <div class="progress-steps">
+        <div class="step" [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1">
+          <div class="step-number">1</div>
+          <div class="step-label">Identity</div>
+        </div>
+        <div class="step-line" [class.active]="currentStep() > 1"></div>
+        <div class="step" [class.active]="currentStep() >= 2">
+          <div class="step-number">2</div>
+          <div class="step-label">Origin Story</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="register-card">
+      <div class="card-header">
+        <div class="header-badge">&diams;</div>
+        <h1 class="header-title">Join the Route</h1>
+        <p class="header-subtitle">
+          @if (currentStep() === 1) {
+            Declare your identity to begin the journey
+          } @else {
+            Tell us about your origins
+          }
+        </p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-message">
+          <span class="error-icon">!</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Step 1: Identity -->
+      @if (currentStep() === 1) {
+        <form [formGroup]="step1Form" (ngSubmit)="nextStep()" class="register-form">
+          <div class="form-group">
+            <label>
+              <span class="label-icon">*</span>
+              <span>Full Name</span>
+            </label>
+            <input
+              type="text"
+              formControlName="fullName"
+              placeholder="Enter your full name"
+              [class.invalid]="step1Form.get('fullName')?.invalid && step1Form.get('fullName')?.touched"
+            >
+            @if (step1Form.get('fullName')?.invalid && step1Form.get('fullName')?.touched) {
+              <span class="field-error">{{ getNameError() }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="label-icon">@</span>
+              <span>Email Address</span>
+            </label>
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="your.email@journey.com"
+              [class.invalid]="step1Form.get('email')?.invalid && step1Form.get('email')?.touched"
+            >
+            @if (step1Form.get('email')?.invalid && step1Form.get('email')?.touched) {
+              <span class="field-error">{{ getEmailError() }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="label-icon">#</span>
+              <span>Phone Number</span>
+            </label>
+            <input
+              type="tel"
+              formControlName="phone"
+              placeholder="10-digit phone number"
+              maxlength="10"
+              [class.invalid]="step1Form.get('phone')?.invalid && step1Form.get('phone')?.touched"
+            >
+            @if (step1Form.get('phone')?.invalid && step1Form.get('phone')?.touched) {
+              <span class="field-error">{{ getPhoneError() }}</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>
+                <span class="label-icon">*</span>
+                <span>Password</span>
+              </label>
+              <input
+                type="password"
+                formControlName="password"
+                placeholder="Min 6 characters"
+                [class.invalid]="step1Form.get('password')?.invalid && step1Form.get('password')?.touched"
+              >
+              @if (step1Form.get('password')?.invalid && step1Form.get('password')?.touched) {
+                <span class="field-error">{{ getPasswordError() }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="label-icon">*</span>
+                <span>Confirm Password</span>
+              </label>
+              <input
+                type="password"
+                formControlName="confirmPassword"
+                placeholder="Repeat password"
+                [class.invalid]="(step1Form.get('confirmPassword')?.invalid || step1Form.hasError('passwordMismatch')) && step1Form.get('confirmPassword')?.touched"
+              >
+              @if ((step1Form.get('confirmPassword')?.touched) && (step1Form.get('confirmPassword')?.invalid || step1Form.hasError('passwordMismatch'))) {
+                <span class="field-error">{{ getConfirmPasswordError() }}</span>
+              }
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <span>Continue to Origin Story</span>
+            <span class="btn-icon">&rarr;</span>
+          </button>
+        </form>
+      }
+
+      <!-- Step 2: Origin Story -->
+      @if (currentStep() === 2) {
+        <form [formGroup]="step2Form" (ngSubmit)="onSubmit()" class="register-form">
+          <div class="form-group">
+            <label>
+              <span class="label-icon">&bull;</span>
+              <span>Where are you from?</span>
+            </label>
+            <select formControlName="city" [class.invalid]="step2Form.get('city')?.invalid && step2Form.get('city')?.touched">
+              <option value="">Select your city</option>
+              @for (city of cities; track city.id) {
+                <option [value]="city.name">{{ city.name }}, {{ city.state }}</option>
+              }
+            </select>
+            @if (step2Form.get('city')?.invalid && step2Form.get('city')?.touched) {
+              <span class="field-error">{{ getCityError() }}</span>
+            }
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">Preferred Route (Optional)</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>
+                  <span class="label-icon">&bull;</span>
+                  <span>From</span>
+                </label>
+                <select formControlName="preferredFrom" [class.invalid]="step2Form.hasError('sameRoute')">
+                  <option value="">Select origin</option>
+                  @for (city of cities; track city.id) {
+                    <option [value]="city.name">{{ city.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>
+                  <span class="label-icon">&bull;</span>
+                  <span>To</span>
+                </label>
+                <select formControlName="preferredTo" [class.invalid]="step2Form.hasError('sameRoute')">
+                  <option value="">Select destination</option>
+                  @for (city of cities; track city.id) {
+                    <option [value]="city.name">{{ city.name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            @if (step2Form.hasError('sameRoute')) {
+              <span class="field-error route-error">{{ getRouteError() }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="label-icon">&bull;</span>
+              <span>What kind of traveler are you? (Optional)</span>
+            </label>
+            <select formControlName="bio">
+              <option value="">Select your traveler type</option>
+              @for (type of travelerTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="back-btn" (click)="prevStep()">
+              <span class="btn-icon">&larr;</span>
+              <span>Back</span>
+            </button>
+
+            <button type="submit" class="submit-btn" [disabled]="isLoading() || step2Form.hasError('sameRoute')">
+              @if (isLoading()) {
+                <span class="loading-spinner"></span>
+                <span>Creating your identity...</span>
+              } @else {
+                <span class="btn-icon">&check;</span>
+                <span>Complete Registration</span>
+              }
+            </button>
+          </div>
+        </form>
+      }
+
+      <div class="card-footer">
+        <div class="divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">Already a member?</span>
+          <span class="divider-line"></span>
+        </div>
+        <a routerLink="/login" class="login-link">Sign In to Your Account</a>
+      </div>
+
+      <div class="back-link">
+        <a routerLink="/">← Return to Home</a>
+      </div>
+    </div>
+  </div>
+</div>

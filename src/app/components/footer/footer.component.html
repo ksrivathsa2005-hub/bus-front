@@ -1,0 +1,102 @@
+<footer class="vintage-footer">
+  <!-- Quote Section -->
+  <div class="quote-section">
+    <div class="quote-marks">"</div>
+    <p class="quote-text">{{ currentQuote }}</p>
+    <div class="quote-marks closing">"</div>
+  </div>
+
+  <!-- Decorative Stamps -->
+  <div class="stamps-row">
+    <div class="stamp stamp-1">
+      <span class="stamp-text">VERIFIED</span>
+      <span class="stamp-year">{{ currentYear }}</span>
+    </div>
+    <div class="stamp stamp-2">
+      <span class="stamp-icon">&bull;</span>
+      <span class="stamp-text">NIGHT ROUTE</span>
+    </div>
+    <div class="stamp stamp-3">
+      <span class="stamp-text">MEMBER</span>
+      <span class="stamp-subtext">N.J.C.</span>
+    </div>
+  </div>
+
+  <!-- Main Footer Content -->
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4 class="section-title">About the Route</h4>
+      <div class="section-divider"></div>
+      <p class="section-text">
+        Since 1952, Night Journey Club has been connecting souls across the southern routes.
+        We believe every journey is a chapter in your story.
+      </p>
+      <div class="vintage-badge">
+        <span>Est.</span>
+        <span class="year">1952</span>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <h4 class="section-title">Rules of Travel</h4>
+      <div class="section-divider"></div>
+      <ul class="rules-list">
+        <li>
+          <span class="rule-number">I.</span>
+          <span>Arrive 15 minutes before departure</span>
+        </li>
+        <li>
+          <span class="rule-number">II.</span>
+          <span>Carry valid identification</span>
+        </li>
+        <li>
+          <span class="rule-number">III.</span>
+          <span>Respect fellow travelers</span>
+        </li>
+        <li>
+          <span class="rule-number">IV.</span>
+          <span>The journey is the destination</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <h4 class="section-title">Night Journey Club</h4>
+      <div class="section-divider"></div>
+      <div class="club-info">
+        <p class="club-motto">"Those who travel by night, see the stars"</p>
+        <div class="club-links">
+          <a routerLink="/vendor">Vendor Portal</a>
+          <span class="link-separator">•</span>
+          <a routerLink="/admin">Admin Terminal</a>
+        </div>
+        <div class="club-stats">
+          <div class="stat">
+            <span class="stat-number">6</span>
+            <span class="stat-label">Cities</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">10</span>
+            <span class="stat-label">Routes</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">∞</span>
+            <span class="stat-label">Journeys</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="footer-bottom">
+    <div class="bottom-ornament">
+      <span class="ornament-left">━━━◆━━━</span>
+      <span class="copyright">
+        © {{ dynamicYear }}
+      </span>
+      <span class="ornament-right">━━━◆━━━</span>
+    </div>
+    <p class="tagline">You don't just book tickets here. You become part of the route.</p>
+  </div>
+</footer>

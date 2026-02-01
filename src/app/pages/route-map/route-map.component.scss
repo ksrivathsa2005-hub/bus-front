@@ -1,0 +1,645 @@
+@use '../../variables' as *;
+
+.route-map-page {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+// Header
+.page-header {
+  text-align: center;
+  padding: 60px 20px 40px;
+  background: linear-gradient(180deg, rgba($burgundy-dark, 0.3) 0%, transparent 100%);
+}
+
+.header-content {
+  .header-badge {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 25px;
+    box-shadow: $shadow-vintage;
+
+    .badge-icon {
+      font-size: 2.5rem;
+    }
+  }
+
+  .header-title {
+    font-family: $font-display;
+    font-size: 2.5rem;
+    color: $ivory;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+  }
+
+  .header-subtitle {
+    font-family: $font-serif;
+    font-size: 1.1rem;
+    color: $charcoal-light;
+    font-style: italic;
+  }
+
+  .header-ornament {
+    color: $gold;
+    opacity: 0.4;
+    margin-top: 20px;
+  }
+}
+
+// Map Container
+.map-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.map-canvas {
+  flex: 1;
+  @include paper-texture;
+  border-radius: 8px;
+  padding: 30px;
+  position: relative;
+  box-shadow: $shadow-vintage;
+  min-height: 500px;
+}
+
+.route-svg {
+  width: 100%;
+  height: auto;
+  min-height: 400px;
+}
+
+// Route Lines
+.route-line {
+  stroke: rgba($burgundy, 0.4);
+  stroke-width: 0.5;
+  stroke-dasharray: 2, 2;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    stroke: $mustard;
+    stroke-width: 1;
+  }
+
+  &.selected {
+    stroke: $mustard;
+    stroke-width: 1;
+    stroke-dasharray: none;
+    animation: pulse-line 2s ease-in-out infinite;
+  }
+
+  &.has-journeys {
+    stroke: $gold;
+    stroke-width: 0.8;
+  }
+}
+
+@keyframes pulse-line {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// City Groups
+.city-group {
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  .city-ring {
+    fill: none;
+    stroke: $burgundy;
+    stroke-width: 0.5;
+    transition: all 0.3s ease;
+  }
+
+  .city-dot {
+    fill: $burgundy;
+    transition: all 0.3s ease;
+  }
+
+  .city-label {
+    font-family: $font-serif;
+    font-size: 2.5px;
+    fill: $charcoal-dark;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+
+  &:hover, &.hovered {
+    .city-ring {
+      stroke: $mustard;
+      stroke-width: 1;
+      r: 5;
+    }
+
+    .city-dot {
+      fill: $mustard;
+    }
+  }
+
+  &.selected {
+    .city-ring {
+      stroke: $gold;
+      stroke-width: 1;
+      animation: pulse-city 1.5s ease-in-out infinite;
+    }
+
+    .city-dot {
+      fill: $gold;
+    }
+  }
+}
+
+@keyframes pulse-city {
+  0%, 100% {
+    stroke-width: 1;
+    opacity: 1;
+  }
+  50% {
+    stroke-width: 1.5;
+    opacity: 0.7;
+  }
+}
+
+// Map Legend
+.map-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  padding: 15px;
+  background: rgba($ivory, 0.95);
+  border: 1px solid rgba($charcoal, 0.1);
+  border-radius: 4px;
+
+  .legend-title {
+    font-family: $font-display;
+    font-size: 0.75rem;
+    color: $charcoal-dark;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-family: $font-sans;
+    font-size: 0.75rem;
+    color: $charcoal;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+
+    &.city {
+      background: $burgundy;
+      border: 2px solid $burgundy-light;
+    }
+  }
+
+  .legend-line {
+    width: 20px;
+    height: 2px;
+    background: $burgundy;
+
+    &.traveled {
+      background: $gold;
+    }
+  }
+}
+
+// Map Compass
+.map-compass {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  text-align: center;
+
+  .compass-n {
+    font-family: $font-display;
+    font-size: 0.7rem;
+    color: $charcoal-dark;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .compass-circle {
+    width: 40px;
+    height: 40px;
+    border: 2px solid $charcoal;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .compass-arrow {
+      font-size: 1.2rem;
+      color: $burgundy;
+    }
+  }
+}
+
+// Info Panel
+.info-panel {
+  width: 350px;
+  @include paper-texture;
+  border-radius: 8px;
+  box-shadow: $shadow-vintage;
+  position: sticky;
+  top: 100px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: 1px solid $charcoal-light;
+  border-radius: 50%;
+  color: $charcoal;
+  cursor: pointer;
+  transition: $transition-elegant;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $charcoal-dark;
+    color: $ivory;
+    border-color: $charcoal-dark;
+  }
+}
+
+.panel-content {
+  padding: 25px;
+}
+
+.panel-header {
+  text-align: center;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed rgba($charcoal, 0.2);
+
+  .panel-title {
+    font-family: $font-display;
+    font-size: 1.2rem;
+    color: $charcoal-dark;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+  }
+
+  .route-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+    border-radius: 4px;
+
+    .from, .to {
+      font-family: $font-serif;
+      color: $ivory;
+      font-size: 1rem;
+    }
+
+    .arrow {
+      color: $mustard;
+    }
+  }
+
+  .city-badge {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, $mustard 0%, $gold 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+
+    .city-icon {
+      font-size: 1.8rem;
+    }
+  }
+
+  .city-state {
+    font-family: $font-sans;
+    color: $charcoal-light;
+    font-size: 0.9rem;
+  }
+}
+
+.panel-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+
+  .stat {
+    text-align: center;
+    padding: 15px 10px;
+    background: rgba($charcoal, 0.03);
+    border-radius: 4px;
+
+    .stat-icon {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      display: block;
+      font-family: $font-display;
+      font-size: 0.95rem;
+      color: $charcoal-dark;
+      margin-bottom: 3px;
+    }
+
+    .stat-label {
+      font-family: $font-sans;
+      font-size: 0.65rem;
+      color: $charcoal-light;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+.journey-history {
+  margin-bottom: 20px;
+
+  .history-badge {
+    display: block;
+    padding: 12px;
+    background: rgba($gold, 0.1);
+    border: 1px solid rgba($gold, 0.3);
+    border-radius: 4px;
+    font-family: $font-sans;
+    font-size: 0.85rem;
+    color: $mustard-dark;
+    text-align: center;
+  }
+}
+
+.available-buses {
+  margin-bottom: 20px;
+
+  h3 {
+    font-family: $font-display;
+    font-size: 0.8rem;
+    color: $charcoal-dark;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .bus-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: rgba($charcoal, 0.03);
+    border-radius: 4px;
+    margin-bottom: 8px;
+
+    .bus-name {
+      flex: 1;
+      font-family: $font-sans;
+      font-size: 0.85rem;
+      color: $charcoal-dark;
+    }
+
+    .bus-type {
+      font-family: $font-mono;
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      background: $charcoal;
+      color: $ivory;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .bus-fare {
+      font-family: $font-display;
+      font-size: 0.9rem;
+      color: $burgundy;
+    }
+  }
+}
+
+.connected-routes {
+  h3 {
+    font-family: $font-display;
+    font-size: 0.8rem;
+    color: $charcoal-dark;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .route-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    background: rgba($charcoal, 0.03);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: $transition-elegant;
+
+    &:hover {
+      background: rgba($burgundy, 0.1);
+    }
+
+    .route-name {
+      font-family: $font-sans;
+      font-size: 0.85rem;
+      color: $charcoal-dark;
+    }
+
+    .route-distance {
+      font-family: $font-mono;
+      font-size: 0.8rem;
+      color: $charcoal-light;
+    }
+  }
+}
+
+.book-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, $burgundy 0%, $burgundy-dark 100%);
+  color: $ivory;
+  font-family: $font-display;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: $transition-slow;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba($burgundy, 0.3);
+  }
+}
+
+// Routes List Section
+.routes-list-section {
+  max-width: 1100px;
+  margin: 60px auto 0;
+  padding: 0 20px;
+
+  .section-title {
+    text-align: center;
+    font-family: $font-display;
+    font-size: 1.3rem;
+    color: $ivory;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+
+    .ornament {
+      color: $gold;
+      margin: 0 15px;
+      opacity: 0.5;
+    }
+  }
+}
+
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.route-card {
+  @include paper-texture;
+  padding: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: $transition-slow;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: $burgundy;
+    opacity: 0;
+    transition: $transition-slow;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-vintage;
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &.selected {
+    border: 2px solid $mustard;
+
+    &::before {
+      opacity: 1;
+      background: $mustard;
+    }
+  }
+
+  &.traveled {
+    background: linear-gradient(135deg, $parchment 0%, rgba($gold, 0.05) 100%);
+  }
+
+  .route-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .from, .to {
+      font-family: $font-display;
+      font-size: 1rem;
+      color: $charcoal-dark;
+      letter-spacing: 1px;
+    }
+
+    .arrow {
+      color: $burgundy;
+      font-size: 1.2rem;
+    }
+  }
+
+  .route-info {
+    text-align: center;
+    font-family: $font-mono;
+    font-size: 0.8rem;
+    color: $charcoal-light;
+
+    span {
+      margin: 0 5px;
+    }
+  }
+
+  .traveled-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    background: $gold;
+    color: $charcoal-dark;
+    font-family: $font-mono;
+    font-size: 0.65rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+// Responsive
+@media (max-width: 900px) {
+  .map-container {
+    flex-direction: column;
+  }
+
+  .info-panel {
+    width: 100%;
+    position: static;
+  }
+}
