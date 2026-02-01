@@ -201,6 +201,36 @@
     border-left: 2px solid $burgundy;
   }
 
+  .station-instruments {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba($gold, 0.1);
+    border-radius: 4px;
+
+    .instrument {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+
+      .instrument-label {
+        font-family: $font-classic;
+        font-size: 0.6rem;
+        color: rgba($gold, 0.5);
+        letter-spacing: 1px;
+      }
+
+      .instrument-value {
+        font-family: $font-mono;
+        font-size: 0.9rem;
+        color: $ivory;
+        text-shadow: 0 0 5px rgba($ivory, 0.3);
+      }
+    }
+  }
+
   .club-links {
     margin-bottom: 25px;
     display: flex;
