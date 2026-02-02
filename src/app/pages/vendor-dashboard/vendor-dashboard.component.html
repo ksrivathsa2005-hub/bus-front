@@ -6,17 +6,17 @@
         <span class="badge-icon">&bull;</span>
         <span class="badge-text">OPERATIONS CONTROL</span>
       </div>
-      <h1 class="header-title">Vendor Control Room</h1>
+      <h1 class="header-title">Vendor Console</h1>
     </div>
     <div class="header-right">
-      @if (currentVendor(); as vendor) {
-        <div class="vendor-info">
-          <span class="vendor-name">{{ vendor.companyName }}</span>
-          <span class="vendor-id">{{ vendor.registrationNumber }}</span>
-        </div>
+      @if (currentUser | async; as user) {
+      <div class="vendor-info">
+        <span class="vendor-name">{{ user.fullName }}</span>
+        <span class="vendor-role">Vendor Partner</span>
+      </div>
       }
       <button class="logout-btn" (click)="logout()">
-        <span>Exit Control Room</span>
+        <span>Exit Console</span>
         <span>&rarr;</span>
       </button>
     </div>
@@ -24,484 +24,275 @@
 
   <!-- Navigation Tabs -->
   <nav class="vendor-nav">
-    <button
-      class="nav-tab"
-      [class.active]="activeTab() === 'overview'"
-      (click)="switchTab('overview')">
+    <button class="nav-tab" [class.active]="activeTab() === 'overview'" (click)="switchTab('overview')">
       <span class="tab-icon">&bull;</span>
-      <span>Overview</span>
+      <span>Operations</span>
     </button>
-    <button
-      class="nav-tab"
-      [class.active]="activeTab() === 'buses'"
-      (click)="switchTab('buses')">
+    <button class="nav-tab" [class.active]="activeTab() === 'buses'" (click)="switchTab('buses')">
       <span class="tab-icon">&bull;</span>
-      <span>My Fleet ({{ stats().totalBuses }})</span>
+      <span>My Fleet ({{ buses().length }})</span>
     </button>
-    <button
-      class="nav-tab"
-      [class.active]="activeTab() === 'add-bus'"
-      (click)="switchTab('add-bus')">
+    <button class="nav-tab" [class.active]="activeTab() === 'add-bus'" (click)="switchTab('add-bus')">
       <span class="tab-icon">+</span>
       <span>{{ editingBusId() ? 'Edit Bus' : 'Add New Bus' }}</span>
-    </button>
-    <button
-      class="nav-tab"
-      [class.active]="activeTab() === 'insights'"
-      (click)="switchTab('insights')">
-      <span class="tab-icon">&bull;</span>
-      <span>Insights</span>
     </button>
   </nav>
 
   <!-- Action Messages -->
   @if (actionMessage()) {
-    <div class="action-message success">
-      <span class="msg-icon">&check;</span>
-      <span>{{ actionMessage() }}</span>
-    </div>
+  <div class="action-message success">
+    <span class="msg-icon">&check;</span>
+    <span>{{ actionMessage() }}</span>
+  </div>
   }
   @if (actionError()) {
-    <div class="action-message error">
-      <span class="msg-icon">!</span>
-      <span>{{ actionError() }}</span>
-    </div>
+  <div class="action-message error">
+    <span class="msg-icon">!</span>
+    <span>{{ actionError() }}</span>
+  </div>
   }
 
   <!-- Main Content -->
   <main class="vendor-content">
     <!-- OVERVIEW TAB -->
     @if (activeTab() === 'overview') {
-      <div class="overview-panel">
-        <div class="section-header">
-          <h2 class="section-title">Operations Overview</h2>
-          <p class="section-subtitle">Your fleet performance at a glance</p>
-        </div>
+    <div class="overview-panel">
+      @if (dashboard(); as db) {
+      <div class="section-header">
+        <h2 class="section-title">Performance Metrics</h2>
+        <p class="section-subtitle">Real-time operation stats</p>
+      </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-          <div class="stat-card revenue">
-            <div class="stat-icon">&curren;</div>
-            <div class="stat-content">
-              <span class="stat-value">{{ formatCurrency(stats().totalRevenue) }}</span>
-              <span class="stat-label">Total Revenue</span>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">&bull;</div>
-            <div class="stat-content">
-              <span class="stat-value">{{ stats().activeBuses }}/{{ stats().totalBuses }}</span>
-              <span class="stat-label">Active Buses</span>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">&bull;</div>
-            <div class="stat-content">
-              <span class="stat-value">{{ stats().totalBookings }}</span>
-              <span class="stat-label">Total Bookings</span>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">&bull;</div>
-            <div class="stat-content">
-              <span class="stat-value">{{ stats().seatOccupancy }}%</span>
-              <span class="stat-label">Seat Occupancy</span>
-            </div>
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card revenue">
+          <div class="stat-icon">&curren;</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ formatCurrency(db.totalRevenue) }}</span>
+            <span class="stat-label">Total Revenue</span>
           </div>
         </div>
-
-        <!-- Popular Route -->
-        <div class="highlight-card">
-          <div class="highlight-label">Most Popular Route</div>
-          <div class="highlight-value">{{ stats().mostPopularRoute }}</div>
+        <div class="stat-card">
+          <div class="stat-icon">&bull;</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ db.activeBuses }}/{{ db.totalBuses }}</span>
+            <span class="stat-label">Active Fleet</span>
+          </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-          <h3 class="actions-title">Quick Actions</h3>
-          <div class="actions-grid">
-            <button class="action-card" (click)="switchTab('add-bus')">
-              <span class="action-icon">+</span>
-              <span class="action-text">Add New Bus</span>
-            </button>
-            <button class="action-card" (click)="switchTab('buses')">
-              <span class="action-icon">&bull;</span>
-              <span class="action-text">Manage Fleet</span>
-            </button>
-            <button class="action-card" (click)="switchTab('insights')">
-              <span class="action-icon">&bull;</span>
-              <span class="action-text">View Insights</span>
-            </button>
+        <div class="stat-card">
+          <div class="stat-icon">&bull;</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ db.totalBookings }}</span>
+            <span class="stat-label">Total Bookings</span>
+          </div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="stat-icon">&bull;</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ db.todayBookings }}</span>
+            <span class="stat-label">Today's Bookings</span>
           </div>
         </div>
       </div>
+
+      <!-- Recent Bookings -->
+      <div class="recent-bookings-section">
+        <h3 class="section-title">Recent Activity</h3>
+        <div class="bookings-table">
+          <div class="table-header">
+            <span>Bus Name</span>
+            <span>Route</span>
+            <span>Travel Date</span>
+            <span>Passengers</span>
+            <span>Fare</span>
+          </div>
+          @for (booking of db.recentBookings; track booking.bookingId) {
+          <div class="table-row">
+            <span class="cell-name">{{ booking.busName }}</span>
+            <span class="cell-route">{{ booking.route }}</span>
+            <span class="cell-date">{{ booking.travelDate | date:'mediumDate' }}</span>
+            <span class="cell-count">{{ booking.passengerCount }}</span>
+            <span class="cell-fare">{{ formatCurrency(booking.fare) }}</span>
+          </div>
+          } @empty {
+          <p class="empty-table">No recent bookings found.</p>
+          }
+        </div>
+      </div>
+      }
+    </div>
     }
 
     <!-- BUSES TAB -->
     @if (activeTab() === 'buses') {
-      <div class="buses-panel">
-        <div class="section-header">
-          <h2 class="section-title">My Fleet</h2>
-          <p class="section-subtitle">Manage your buses, pricing, and availability</p>
-          <button class="add-btn" (click)="switchTab('add-bus')">
-            <span>+</span>
-            <span>Add New Bus</span>
-          </button>
+    <div class="buses-panel">
+      <div class="section-header">
+        <h2 class="section-title">Management Console</h2>
+        <p class="section-subtitle">Control your fleet operations</p>
+        <button class="add-btn" (click)="switchTab('add-bus')">
+          <span>+</span>
+          <span>Add New Bus</span>
+        </button>
+      </div>
+
+      @if (buses().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">&mdash;</div>
+        <h3>No Buses Active</h3>
+        <p>Deploy your first bus to the club to start your journey.</p>
+        <button class="add-btn" (click)="switchTab('add-bus')">Deploy First Bus</button>
+      </div>
+      } @else {
+      <div class="buses-grid">
+        @for (bus of buses(); track bus.id) {
+        <div class="bus-card">
+          <div class="bus-header">
+            <div class="bus-name">{{ bus.name }}</div>
+            <div class="bus-type" [attr.data-type]="bus.type.toLowerCase()">{{ bus.type }}</div>
+          </div>
+
+          <div class="bus-route">
+            <span class="from">{{ bus.fromCity }}</span>
+            <span class="arrow">&rarr;</span>
+            <span class="to">{{ bus.toCity }}</span>
+          </div>
+
+          <div class="bus-details">
+            <div class="detail">
+              <span class="label">Departure</span>
+              <span class="value">{{ getFormattedTime(bus.departureTime) }}</span>
+            </div>
+            <div class="detail">
+              <span class="label">Arrival</span>
+              <span class="value">{{ getFormattedTime(bus.arrivalTime) }}</span>
+            </div>
+            <div class="detail">
+              <span class="label">Duration</span>
+              <span class="value">{{ getDuration(bus) }}</span>
+            </div>
+          </div>
+
+          <div class="bus-stats">
+            <div class="stat">
+              <span class="stat-label">Capacity</span>
+              <span class="stat-value">{{ bus.totalSeats }} Seats</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Available</span>
+              <span class="stat-value">{{ bus.availableSeats }}</span>
+            </div>
+          </div>
+
+          <div class="bus-fare">
+            <span class="fare-label">Base Fare</span>
+            <span class="fare-value">{{ formatCurrency(bus.fare) }}</span>
+          </div>
+
+          <div class="bus-actions">
+            <button class="action-btn edit" (click)="editBus(bus)">Edit</button>
+            <button class="action-btn delete" (click)="deleteBus(bus.id)">Remove</button>
+          </div>
         </div>
-
-        @if (buses().length === 0) {
-          <div class="empty-state">
-            <div class="empty-icon">&mdash;</div>
-            <h3>No Buses Yet</h3>
-            <p>Start by adding your first bus to the fleet.</p>
-            <button class="add-btn" (click)="switchTab('add-bus')">Add Your First Bus</button>
-          </div>
-        } @else {
-          <div class="buses-grid">
-            @for (bus of buses(); track bus.id) {
-              <div class="bus-card" [class.disabled]="bus.isEnabled === false">
-                <div class="bus-header">
-                  <div class="bus-name">{{ bus.name }}</div>
-                  <div class="bus-type" [attr.data-type]="bus.type.toLowerCase()">{{ bus.type }}</div>
-                </div>
-
-                <div class="bus-route">
-                  <span class="from">{{ bus.from }}</span>
-                  <span class="arrow">&rarr;</span>
-                  <span class="to">{{ bus.to }}</span>
-                </div>
-
-                <div class="bus-details">
-                  <div class="detail">
-                    <span class="label">Departure</span>
-                    <span class="value">{{ bus.departureTime }}</span>
-                  </div>
-                  <div class="detail">
-                    <span class="label">Arrival</span>
-                    <span class="value">{{ bus.arrivalTime }}</span>
-                  </div>
-                  <div class="detail">
-                    <span class="label">Duration</span>
-                    <span class="value">{{ bus.duration }}</span>
-                  </div>
-                </div>
-
-                <div class="bus-stats">
-                  <div class="stat">
-                    <span class="stat-label">Seats</span>
-                    <span class="stat-value">{{ bus.totalSeats }}</span>
-                  </div>
-                  <div class="stat">
-                    <span class="stat-label">Booked</span>
-                    <span class="stat-value">{{ getBookedSeats(bus.id) }}</span>
-                  </div>
-                  <div class="stat">
-                    <span class="stat-label">Rating</span>
-                    <span class="stat-value">{{ bus.rating.toFixed(1) }}</span>
-                  </div>
-                </div>
-
-                <div class="bus-fare">
-                  <span class="fare-label">Base Fare</span>
-                  <div class="fare-control">
-                    <button class="fare-btn" (click)="updateFare(bus.id, bus.fare - 50)">-</button>
-                    <span class="fare-value">{{ formatCurrency(bus.fare) }}</span>
-                    <button class="fare-btn" (click)="updateFare(bus.id, bus.fare + 50)">+</button>
-                  </div>
-                </div>
-
-                <div class="bus-status">
-                  <span class="status-badge" [class.enabled]="bus.isEnabled !== false" [class.disabled]="bus.isEnabled === false">
-                    {{ bus.isEnabled !== false ? 'Active' : 'Disabled' }}
-                  </span>
-                </div>
-
-                <div class="bus-actions">
-                  <button class="action-btn edit" (click)="editBus(bus)">Edit</button>
-                  <button
-                    class="action-btn toggle"
-                    [class.disable]="bus.isEnabled !== false"
-                    (click)="toggleBusStatus(bus.id)">
-                    {{ bus.isEnabled !== false ? 'Disable' : 'Enable' }}
-                  </button>
-                  <button class="action-btn delete" (click)="deleteBus(bus.id)">Remove</button>
-                </div>
-              </div>
-            }
-          </div>
         }
       </div>
+      }
+    </div>
     }
 
     <!-- ADD/EDIT BUS TAB -->
     @if (activeTab() === 'add-bus') {
-      <div class="add-bus-panel">
-        <div class="section-header">
-          <h2 class="section-title">{{ editingBusId() ? 'Edit Bus Details' : 'Add New Bus' }}</h2>
-          <p class="section-subtitle">{{ editingBusId() ? 'Update your bus information' : 'Configure your new bus route' }}</p>
-        </div>
-
-        <form [formGroup]="busForm" (ngSubmit)="onSubmitBus()" class="bus-form">
-          <div class="form-section">
-            <h3 class="form-section-title">Basic Information</h3>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Bus Name <span class="required">*</span></label>
-                <input
-                  type="text"
-                  formControlName="name"
-                  placeholder="e.g., Night Express Deluxe"
-                  [class.invalid]="busForm.get('name')?.invalid && busForm.get('name')?.touched">
-                @if (getFieldError('name')) {
-                  <span class="field-error">{{ getFieldError('name') }}</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label>Bus Type <span class="required">*</span></label>
-                <select formControlName="type" [class.invalid]="busForm.get('type')?.invalid && busForm.get('type')?.touched">
-                  <option value="">Select Type</option>
-                  @for (type of busTypes(); track type) {
-                    <option [value]="type">{{ type }}</option>
-                  }
-                </select>
-                @if (getFieldError('type')) {
-                  <span class="field-error">{{ getFieldError('type') }}</span>
-                }
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <h3 class="form-section-title">Route Details</h3>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>From City <span class="required">*</span></label>
-                <select formControlName="from" [class.invalid]="busForm.get('from')?.invalid && busForm.get('from')?.touched">
-                  <option value="">Select Origin</option>
-                  @for (city of cities(); track city.id) {
-                    <option [value]="city.name">{{ city.name }}, {{ city.state }}</option>
-                  }
-                </select>
-                @if (getFieldError('from')) {
-                  <span class="field-error">{{ getFieldError('from') }}</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label>To City <span class="required">*</span></label>
-                <select formControlName="to" [class.invalid]="busForm.get('to')?.invalid && busForm.get('to')?.touched">
-                  <option value="">Select Destination</option>
-                  @for (city of cities(); track city.id) {
-                    <option [value]="city.name">{{ city.name }}, {{ city.state }}</option>
-                  }
-                </select>
-                @if (getFieldError('to')) {
-                  <span class="field-error">{{ getFieldError('to') }}</span>
-                }
-              </div>
-            </div>
-
-            @if (busForm.hasError('sameRoute')) {
-              <div class="route-error">Origin and destination cannot be the same city.</div>
-            }
-          </div>
-
-          <div class="form-section">
-            <h3 class="form-section-title">Schedule</h3>
-
-            <div class="form-row three-col">
-              <div class="form-group">
-                <label>Departure Time <span class="required">*</span></label>
-                <input
-                  type="time"
-                  formControlName="departureTime"
-                  [class.invalid]="busForm.get('departureTime')?.invalid && busForm.get('departureTime')?.touched">
-                @if (getFieldError('departureTime')) {
-                  <span class="field-error">{{ getFieldError('departureTime') }}</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label>Arrival Time <span class="required">*</span></label>
-                <input
-                  type="time"
-                  formControlName="arrivalTime"
-                  [class.invalid]="busForm.get('arrivalTime')?.invalid && busForm.get('arrivalTime')?.touched">
-                @if (getFieldError('arrivalTime')) {
-                  <span class="field-error">{{ getFieldError('arrivalTime') }}</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label>Duration <span class="required">*</span></label>
-                <input
-                  type="text"
-                  formControlName="duration"
-                  placeholder="e.g., 8h 30m"
-                  [class.invalid]="busForm.get('duration')?.invalid && busForm.get('duration')?.touched">
-                @if (getFieldError('duration')) {
-                  <span class="field-error">{{ getFieldError('duration') }}</span>
-                }
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <h3 class="form-section-title">Capacity & Pricing</h3>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Total Seats <span class="required">*</span></label>
-                <input
-                  type="number"
-                  formControlName="totalSeats"
-                  min="10"
-                  max="60"
-                  [class.invalid]="busForm.get('totalSeats')?.invalid && busForm.get('totalSeats')?.touched">
-                @if (getFieldError('totalSeats')) {
-                  <span class="field-error">{{ getFieldError('totalSeats') }}</span>
-                }
-                <span class="field-hint">Between 10 and 60 seats</span>
-              </div>
-
-              <div class="form-group">
-                <label>Base Fare (₹) <span class="required">*</span></label>
-                <input
-                  type="number"
-                  formControlName="fare"
-                  min="100"
-                  max="5000"
-                  [class.invalid]="busForm.get('fare')?.invalid && busForm.get('fare')?.touched">
-                @if (getFieldError('fare')) {
-                  <span class="field-error">{{ getFieldError('fare') }}</span>
-                }
-                <span class="field-hint">Between ₹100 and ₹5000</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <h3 class="form-section-title">Amenities</h3>
-            <p class="section-hint">Select the amenities available on this bus</p>
-
-            <div class="amenities-grid">
-              @for (amenity of availableAmenities; track amenity) {
-                <button
-                  type="button"
-                  class="amenity-btn"
-                  [class.selected]="hasAmenity(amenity)"
-                  (click)="toggleAmenity(amenity)">
-                  {{ amenity }}
-                </button>
-              }
-            </div>
-          </div>
-
-          <div class="form-actions">
-            @if (editingBusId()) {
-              <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
-            }
-            <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
-              @if (isSubmitting()) {
-                <span class="spinner"></span>
-                <span>{{ editingBusId() ? 'Updating...' : 'Adding...' }}</span>
-              } @else {
-                <span>{{ editingBusId() ? 'Update Bus' : 'Add Bus to Fleet' }}</span>
-              }
-            </button>
-          </div>
-        </form>
+    <div class="add-bus-panel">
+      <div class="section-header">
+        <h2 class="section-title">{{ editingBusId() ? 'Modify Bus Configuration' : 'Fleet Expansion' }}</h2>
+        <p class="section-subtitle">{{ editingBusId() ? 'Update technical specifications' : 'Commission a new night
+          route' }}</p>
       </div>
-    }
 
-    <!-- INSIGHTS TAB -->
-    @if (activeTab() === 'insights') {
-      <div class="insights-panel">
-        <div class="section-header">
-          <h2 class="section-title">Business Insights</h2>
-          <p class="section-subtitle">Analytics and performance metrics</p>
-        </div>
+      <form [formGroup]="busForm" (ngSubmit)="onSubmitBus()" class="bus-form">
+        <div class="form-section">
+          <h3 class="form-section-title">Specifications</h3>
 
-        <!-- Key Metrics -->
-        <div class="metrics-grid">
-          <div class="metric-card large">
-            <div class="metric-header">
-              <span class="metric-title">Total Revenue</span>
-              <span class="metric-period">All Time</span>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Service Name <span class="required">*</span></label>
+              <input type="text" formControlName="name" placeholder="e.g., Night Express Alpha">
             </div>
-            <div class="metric-value">{{ formatCurrency(stats().totalRevenue) }}</div>
-          </div>
 
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Seat Occupancy</span>
+            <div class="form-group">
+              <label>Vessel Type <span class="required">*</span></label>
+              <select formControlName="type">
+                @for (type of ['Seater', 'Sleeper', 'Luxury']; track type) {
+                <option [value]="type">{{ type }}</option>
+                }
+              </select>
             </div>
-            <div class="metric-value">{{ stats().seatOccupancy }}%</div>
-            <div class="metric-bar">
-              <div class="bar-fill" [style.width.%]="stats().seatOccupancy"></div>
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Total Bookings</span>
-            </div>
-            <div class="metric-value">{{ stats().totalBookings }}</div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Fleet Size</span>
-            </div>
-            <div class="metric-value">{{ stats().totalBuses }} buses</div>
-            <div class="metric-sub">{{ stats().activeBuses }} active</div>
           </div>
         </div>
 
-        <!-- Route Performance -->
-        <div class="insights-section">
-          <h3 class="insights-title">Route Performance</h3>
+        <div class="form-section">
+          <h3 class="form-section-title">Flight Path</h3>
 
-          @if (routeStats().length === 0) {
-            <div class="empty-insights">
-              <p>No booking data available yet. Start operating to see insights.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Origin City <span class="required">*</span></label>
+              <input type="text" formControlName="fromCity" placeholder="From">
             </div>
-          } @else {
-            <div class="route-table">
-              <div class="table-header">
-                <span>Route</span>
-                <span>Bookings</span>
-                <span>Revenue</span>
-              </div>
-              @for (route of routeStats(); track route.route) {
-                <div class="table-row">
-                  <span class="route-name">{{ route.route }}</span>
-                  <span class="route-bookings">{{ route.bookings }}</span>
-                  <span class="route-revenue">{{ formatCurrency(route.revenue) }}</span>
-                </div>
-              }
+
+            <div class="form-group">
+              <label>Destination City <span class="required">*</span></label>
+              <input type="text" formControlName="toCity" placeholder="To">
             </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Chronology</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Departure <span class="required">*</span></label>
+              <input type="time" formControlName="departureTime">
+            </div>
+
+            <div class="form-group">
+              <label>Arrival <span class="required">*</span></label>
+              <input type="time" formControlName="arrivalTime">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Logistics</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Total Berths <span class="required">*</span></label>
+              <input type="number" formControlName="totalSeats">
+            </div>
+
+            <div class="form-group">
+              <label>Credit Required (₹) <span class="required">*</span></label>
+              <input type="number" formControlName="fare">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          @if (editingBusId()) {
+          <button type="button" class="cancel-btn" (click)="editingBusId.set(null); switchTab('buses')">Discard
+            Changes</button>
           }
+          <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
+            @if (isSubmitting()) {
+            <span class="spinner"></span>
+            <span>Syncing Console...</span>
+            } @else {
+            <span>{{ editingBusId() ? 'Apply Signature' : 'Authorize Route' }}</span>
+            }
+          </button>
         </div>
-
-        <!-- Most Popular -->
-        <div class="popular-route-card">
-          <div class="popular-label">Your Most Popular Route</div>
-          <div class="popular-value">{{ stats().mostPopularRoute }}</div>
-        </div>
-      </div>
+      </form>
+    </div>
     }
   </main>
-
-  <!-- Footer -->
-  <footer class="vendor-footer">
-    <div class="footer-content">
-      <span class="footer-text">Night Journey Club - Vendor Portal</span>
-      <span class="footer-divider">&bull;</span>
-      <span class="footer-text">Operations Control System</span>
-    </div>
-  </footer>
 </div>

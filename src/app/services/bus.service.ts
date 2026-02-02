@@ -1,119 +1,31 @@
-import { Injectable, signal } from '@angular/core';
-import { Bus, Seat, City, Route } from '../models';
+// src/app/services/bus.service.ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { City, Bus, SeatLayout } from '../models';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class BusService {
+  private http = inject(HttpClient);
+  private baseUrl = 'https://localhost:7145/api';
 
-  readonly cities: City[] = [
-    { id: 'CHN', name: 'Chennai', state: 'Tamil Nadu', coordinates: { x: 80, y: 25 } },
-    { id: 'BLR', name: 'Bengaluru', state: 'Karnataka', coordinates: { x: 35, y: 35 } },
-    { id: 'KCH', name: 'Kochi', state: 'Kerala', coordinates: { x: 20, y: 70 } },
-    { id: 'CBE', name: 'Coimbatore', state: 'Tamil Nadu', coordinates: { x: 40, y: 55 } },
-    { id: 'MDU', name: 'Madurai', state: 'Tamil Nadu', coordinates: { x: 55, y: 75 } },
-    { id: 'TRY', name: 'Trichy', state: 'Tamil Nadu', coordinates: { x: 60, y: 55 } },
-  ];
-
-  readonly routes: Route[] = [
-    { id: 'R1', from: 'Chennai', to: 'Bengaluru', distance: 350, duration: '6h 30m', buses: ['B1', 'B2', 'B3'] },
-    { id: 'R2', from: 'Chennai', to: 'Coimbatore', distance: 500, duration: '8h', buses: ['B4', 'B5'] },
-    { id: 'R3', from: 'Chennai', to: 'Madurai', distance: 460, duration: '7h 30m', buses: ['B6', 'B7'] },
-    { id: 'R4', from: 'Bengaluru', to: 'Kochi', distance: 560, duration: '9h', buses: ['B8', 'B9'] },
-    { id: 'R5', from: 'Bengaluru', to: 'Coimbatore', distance: 365, duration: '6h', buses: ['B10', 'B11'] },
-    { id: 'R6', from: 'Coimbatore', to: 'Kochi', distance: 190, duration: '4h', buses: ['B12'] },
-    { id: 'R7', from: 'Chennai', to: 'Trichy', distance: 330, duration: '5h 30m', buses: ['B13', 'B14'] },
-    { id: 'R8', from: 'Trichy', to: 'Madurai', distance: 140, duration: '2h 30m', buses: ['B15'] },
-    { id: 'R9', from: 'Madurai', to: 'Kochi', distance: 280, duration: '5h', buses: ['B16'] },
-    { id: 'R10', from: 'Bengaluru', to: 'Chennai', distance: 350, duration: '6h 30m', buses: ['B17', 'B18'] },
-  ];
-
-  private readonly mockBuses: Bus[] = [
-    { id: 'B1', name: 'Night Voyager Express', type: 'Sleeper', from: 'Chennai', to: 'Bengaluru', departureTime: '21:00', arrivalTime: '05:30', duration: '8h 30m', fare: 850, totalSeats: 36, availableSeats: 24, amenities: ['WiFi', 'Blanket', 'Water', 'Charging Point'], rating: 4.5 },
-    { id: 'B2', name: 'Midnight Cruiser', type: 'Semi-Sleeper', from: 'Chennai', to: 'Bengaluru', departureTime: '22:30', arrivalTime: '06:00', duration: '7h 30m', fare: 650, totalSeats: 40, availableSeats: 18, amenities: ['AC', 'Blanket', 'Charging Point'], rating: 4.2 },
-    { id: 'B3', name: 'Royal Heritage', type: 'Luxury', from: 'Chennai', to: 'Bengaluru', departureTime: '20:00', arrivalTime: '04:00', duration: '8h', fare: 1200, totalSeats: 24, availableSeats: 12, amenities: ['WiFi', 'TV', 'Snacks', 'Blanket', 'Pillow', 'Charging Point'], rating: 4.8 },
-    { id: 'B4', name: 'Kovai Express', type: 'Sleeper', from: 'Chennai', to: 'Coimbatore', departureTime: '21:30', arrivalTime: '06:30', duration: '9h', fare: 750, totalSeats: 36, availableSeats: 20, amenities: ['AC', 'Blanket', 'Water'], rating: 4.3 },
-    { id: 'B5', name: 'Nilgiri Traveler', type: 'Semi-Sleeper', from: 'Chennai', to: 'Coimbatore', departureTime: '23:00', arrivalTime: '07:30', duration: '8h 30m', fare: 550, totalSeats: 40, availableSeats: 28, amenities: ['AC', 'Charging Point'], rating: 4.0 },
-    { id: 'B6', name: 'Temple City Runner', type: 'Sleeper', from: 'Chennai', to: 'Madurai', departureTime: '20:30', arrivalTime: '05:00', duration: '8h 30m', fare: 680, totalSeats: 36, availableSeats: 15, amenities: ['AC', 'Blanket', 'Water', 'Charging Point'], rating: 4.4 },
-    { id: 'B7', name: 'Pandyan Express', type: 'Seater', from: 'Chennai', to: 'Madurai', departureTime: '06:00', arrivalTime: '14:00', duration: '8h', fare: 450, totalSeats: 48, availableSeats: 32, amenities: ['AC'], rating: 3.9 },
-    { id: 'B8', name: 'Malabar Night Rider', type: 'Sleeper', from: 'Bengaluru', to: 'Kochi', departureTime: '21:00', arrivalTime: '07:00', duration: '10h', fare: 980, totalSeats: 36, availableSeats: 22, amenities: ['WiFi', 'TV', 'Blanket', 'Snacks'], rating: 4.6 },
-    { id: 'B9', name: 'Backwater Express', type: 'Semi-Sleeper', from: 'Bengaluru', to: 'Kochi', departureTime: '22:00', arrivalTime: '07:30', duration: '9h 30m', fare: 720, totalSeats: 40, availableSeats: 16, amenities: ['AC', 'Blanket', 'Charging Point'], rating: 4.1 },
-    { id: 'B10', name: 'Western Ghats Voyager', type: 'Luxury', from: 'Bengaluru', to: 'Coimbatore', departureTime: '22:30', arrivalTime: '05:30', duration: '7h', fare: 950, totalSeats: 24, availableSeats: 10, amenities: ['WiFi', 'TV', 'Snacks', 'Blanket', 'Pillow'], rating: 4.7 },
-    { id: 'B11', name: 'Kongu Express', type: 'Sleeper', from: 'Bengaluru', to: 'Coimbatore', departureTime: '21:30', arrivalTime: '05:00', duration: '7h 30m', fare: 680, totalSeats: 36, availableSeats: 25, amenities: ['AC', 'Blanket', 'Water'], rating: 4.2 },
-    { id: 'B12', name: 'Palakkad Shuttle', type: 'Semi-Sleeper', from: 'Coimbatore', to: 'Kochi', departureTime: '08:00', arrivalTime: '12:30', duration: '4h 30m', fare: 380, totalSeats: 40, availableSeats: 30, amenities: ['AC', 'Water'], rating: 4.0 },
-    { id: 'B13', name: 'Rock Fort Express', type: 'Sleeper', from: 'Chennai', to: 'Trichy', departureTime: '22:00', arrivalTime: '04:30', duration: '6h 30m', fare: 520, totalSeats: 36, availableSeats: 28, amenities: ['AC', 'Blanket', 'Charging Point'], rating: 4.3 },
-    { id: 'B14', name: 'Kaveri Cruiser', type: 'Seater', from: 'Chennai', to: 'Trichy', departureTime: '07:00', arrivalTime: '13:00', duration: '6h', fare: 350, totalSeats: 48, availableSeats: 35, amenities: ['AC'], rating: 3.8 },
-    { id: 'B15', name: 'Temple Link', type: 'Seater', from: 'Trichy', to: 'Madurai', departureTime: '09:00', arrivalTime: '12:00', duration: '3h', fare: 220, totalSeats: 48, availableSeats: 40, amenities: ['AC', 'Water'], rating: 4.0 },
-    { id: 'B16', name: 'Southern Star', type: 'Sleeper', from: 'Madurai', to: 'Kochi', departureTime: '21:00', arrivalTime: '03:30', duration: '6h 30m', fare: 580, totalSeats: 36, availableSeats: 18, amenities: ['AC', 'Blanket', 'Water', 'Charging Point'], rating: 4.4 },
-    { id: 'B17', name: 'Garden City Return', type: 'Sleeper', from: 'Bengaluru', to: 'Chennai', departureTime: '21:30', arrivalTime: '05:00', duration: '7h 30m', fare: 780, totalSeats: 36, availableSeats: 20, amenities: ['WiFi', 'Blanket', 'Water', 'Charging Point'], rating: 4.4 },
-    { id: 'B18', name: 'Silicon Express', type: 'Luxury', from: 'Bengaluru', to: 'Chennai', departureTime: '20:00', arrivalTime: '03:30', duration: '7h 30m', fare: 1100, totalSeats: 24, availableSeats: 8, amenities: ['WiFi', 'TV', 'Snacks', 'Blanket', 'Pillow', 'Charging Point'], rating: 4.9 },
-  ];
-
-  searchBuses(from: string, to: string, date: string): Bus[] {
-    return this.mockBuses.filter(bus =>
-      bus.from.toLowerCase() === from.toLowerCase() &&
-      bus.to.toLowerCase() === to.toLowerCase()
-    );
+  getCities() {
+    return this.http.get<City[]>(`${this.baseUrl}/cities`);
   }
 
-  getBusById(id: string): Bus | undefined {
-    return this.mockBuses.find(bus => bus.id === id);
+  searchBuses(from: string, to: string, date: string) {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('date', date);
+    return this.http.get<Bus[]>(`${this.baseUrl}/buses/search`, { params });
   }
 
-  getSeatsForBus(busId: string): Seat[] {
-    const bus = this.getBusById(busId);
-    if (!bus) return [];
-
-    const bookedSeats = this.getBookedSeatsForBus(busId);
-    const seats: Seat[] = [];
-    const totalSeats = bus.totalSeats;
-    const seatsPerRow = bus.type === 'Sleeper' ? 6 : 8;
-    const rows = Math.ceil(totalSeats / seatsPerRow);
-
-    let seatNum = 1;
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < seatsPerRow && seatNum <= totalSeats; col++) {
-        const seatId = `${busId}-S${seatNum}`;
-        const seatNumber = `S${seatNum}`;
-        let type: 'window' | 'aisle' | 'middle' = 'middle';
-
-        if (col === 0 || col === seatsPerRow - 1) type = 'window';
-        else if (col === 2 || col === 3) type = 'aisle';
-
-        seats.push({
-          id: seatId,
-          number: seatNumber,
-          type,
-          deck: row < rows / 2 ? 'lower' : 'upper',
-          isBooked: bookedSeats.includes(seatNumber),
-          price: bus.fare + (type === 'window' ? 50 : 0)
-        });
-        seatNum++;
-      }
-    }
-
-    return seats;
+  getBusById(id: string) {
+    return this.http.get<Bus>(`${this.baseUrl}/buses/${id}`);
   }
 
-  private getBookedSeatsForBus(busId: string): string[] {
-    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    return bookings
-      .filter((b: any) => b.busId === busId && b.status === 'confirmed')
-      .flatMap((b: any) => b.seats);
-  }
-
-  getCities(): City[] {
-    return this.cities;
-  }
-
-  getRoutes(): Route[] {
-    return this.routes;
-  }
-
-  getBusesForRoute(from: string, to: string): Bus[] {
-    return this.mockBuses.filter(bus =>
-      bus.from.toLowerCase() === from.toLowerCase() &&
-      bus.to.toLowerCase() === to.toLowerCase()
-    );
+  getSeatLayout(busId: string, date: string) {
+    const params = new HttpParams().set('date', date);
+    return this.http.get<SeatLayout>(`${this.baseUrl}/buses/${busId}/seats`, { params });
   }
 }

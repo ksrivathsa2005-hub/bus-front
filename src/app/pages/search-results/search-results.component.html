@@ -16,7 +16,7 @@
         </div>
         <div class="route-date">
           <span class="date-icon">📅</span>
-          <span>{{ formatDate(date) }}</span>
+          <span>{{ formatDisplayDate(date) }}</span>
         </div>
       </div>
     </div>
@@ -25,91 +25,94 @@
   <!-- Results Section -->
   <div class="results-container">
     @if (isLoading()) {
-      <div class="loading-state">
-        <div class="loading-spinner"></div>
-        <p class="loading-text">Searching the night routes...</p>
-      </div>
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Searching the night routes...</p>
+    </div>
     } @else if (buses().length === 0) {
-      <div class="empty-state">
-        <div class="empty-icon">🌙</div>
-        <h2 class="empty-title">No Journeys Found</h2>
-        <p class="empty-text">
-          The roads between {{ from }} and {{ to }} are quiet on this date.<br>
-          Perhaps try another day?
-        </p>
-        <a routerLink="/" class="btn-search-again">Search Different Route</a>
-      </div>
+    <div class="empty-state">
+      <div class="empty-icon">🌙</div>
+      <h2 class="empty-title">No Journeys Found</h2>
+      <p class="empty-text">
+        The roads between {{ from }} and {{ to }} are quiet on this date.<br>
+        Perhaps try another day?
+      </p>
+      <a routerLink="/" class="btn-search-again">Search Different Route</a>
+    </div>
     } @else {
-      <div class="results-count">
-        <span class="count-number">{{ buses().length }}</span>
-        <span class="count-text">buses found for your journey</span>
-      </div>
+    <div class="results-count">
+      <span class="count-number">{{ buses().length }}</span>
+      <span class="count-text">buses found for your journey</span>
+    </div>
 
-      <div class="buses-list">
-        @for (bus of buses(); track bus.id) {
-          <div class="bus-card" (click)="selectBus(bus)">
-            <!-- Bus Header -->
-            <div class="bus-header">
-              <div class="bus-name-section">
-                <h3 class="bus-name">{{ bus.name }}</h3>
-                <span class="bus-type" [class]="bus.type.toLowerCase()">{{ bus.type }}</span>
-              </div>
-              <div class="bus-rating">
-                <span class="rating-star">⭐</span>
-                <span class="rating-value">{{ bus.rating }}</span>
-              </div>
-            </div>
-
-            <!-- Bus Timing -->
-            <div class="bus-timing">
-              <div class="time-block departure">
-                <span class="time">{{ bus.departureTime }}</span>
-                <span class="city">{{ from }}</span>
-              </div>
-              <div class="duration-block">
-                <span class="duration-line"></span>
-                <span class="duration-text">{{ bus.duration }}</span>
-                <span class="duration-line"></span>
-              </div>
-              <div class="time-block arrival">
-                <span class="time">{{ bus.arrivalTime }}</span>
-                <span class="city">{{ to }}</span>
-              </div>
-            </div>
-
-            <!-- Bus Amenities -->
-            <div class="bus-amenities">
-              @for (amenity of bus.amenities; track amenity) {
-                <span class="amenity" [title]="amenity">
-                  {{ getAmenityIcon(amenity) }}
-                </span>
-              }
-            </div>
-
-            <!-- Bus Footer -->
-            <div class="bus-footer">
-              <div class="seats-info">
-                <span class="seats-icon">🪑</span>
-                <span class="seats-count" [class.low]="bus.availableSeats < 10">
-                  {{ bus.availableSeats }} seats left
-                </span>
-              </div>
-              <div class="fare-section">
-                <span class="fare-label">Starting from</span>
-                <span class="fare-amount">₹{{ bus.fare }}</span>
-              </div>
-              <button class="select-btn">
-                <span>Select Seats</span>
-                <span class="btn-arrow">→</span>
-              </button>
-            </div>
+    <div class="buses-list">
+      @for (bus of buses(); track bus.id) {
+      <div class="bus-card" (click)="selectBus(bus)">
+        <!-- Bus Header -->
+        <div class="bus-header">
+          <div class="bus-name-section">
+            <h3 class="bus-name">{{ bus.name }}</h3>
+            <span class="bus-type" [class]="bus.type.toLowerCase()">
+              {{ getTypeIcon(bus.type) }} {{ bus.type }}
+            </span>
           </div>
-        }
+          <div class="vendor-info">
+            <span class="vendor-label">Operated by</span>
+            <span class="vendor-name">{{ bus.vendorName }}</span>
+          </div>
+        </div>
+
+        <!-- Bus Timing -->
+        <div class="bus-timing">
+          <div class="time-block departure">
+            <span class="time">{{ getFormattedTime(bus.departureTime) }}</span>
+            <span class="city">{{ bus.fromCity }}</span>
+          </div>
+          <div class="duration-block">
+            <span class="duration-line"></span>
+            <span class="duration-text">{{ getDuration(bus) }}</span>
+            <span class="duration-line"></span>
+          </div>
+          <div class="time-block arrival">
+            <span class="time">{{ getFormattedTime(bus.arrivalTime) }}</span>
+            <span class="city">{{ bus.toCity }}</span>
+          </div>
+        </div>
+
+        <!-- Bus Amenities -->
+        <div class="bus-amenities">
+          @for (amenity of bus.amenities; track amenity) {
+          <span class="amenity" [title]="amenity">
+            {{ amenity }}
+          </span>
+          }
+        </div>
+
+        <!-- Bus Footer -->
+        <div class="bus-footer">
+          <div class="seats-info">
+            <span class="seats-icon">🪑</span>
+            <span class="seats-count" [class.low]="bus.availableSeats < 10">
+              {{ bus.availableSeats }} seats left
+            </span>
+            <span class="total-seats">of {{ bus.totalSeats }}</span>
+          </div>
+          <div class="fare-section">
+            <span class="fare-label">Starting from</span>
+            <span class="fare-amount">₹{{ bus.fare }}</span>
+          </div>
+          <button class="select-btn">
+            <span>Select Seats</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
       </div>
+      }
+    </div>
     }
   </div>
 </div>
 
 @if (showAuthModal()) {
-  <app-auth-modal (close)="showAuthModal.set(false)"></app-auth-modal>
+<app-auth-modal (close)="showAuthModal.set(false)"></app-auth-modal>
 }

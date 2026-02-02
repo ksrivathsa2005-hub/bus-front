@@ -1,209 +1,132 @@
 <div class="my-profile-page page-enter">
   @if (currentUser(); as user) {
-    <!-- Profile Header -->
-    <div class="profile-header">
-      <div class="header-bg"></div>
-      <div class="header-content">
-        <div class="avatar">
-          <span class="avatar-letter">{{ user.fullName.charAt(0).toUpperCase() }}</span>
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="header-bg"></div>
+    <div class="header-content">
+      <div class="avatar">
+        <span class="avatar-letter">{{ user.fullName.charAt(0).toUpperCase() }}</span>
+      </div>
+      <h1 class="user-name">{{ user.fullName }}</h1>
+      <p class="user-email">{{ user.email }}</p>
+      <div class="member-badge">
+        <span class="badge-icon">&diams;</span>
+        <span class="badge-text">Night Journey Club Member</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-content">
+    <!-- Stats Cards -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-icon">&bull;</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ memberSince }}</span>
+          <span class="stat-label">Member Since</span>
         </div>
-        <h1 class="user-name">{{ user.fullName }}</h1>
-        <p class="user-email">{{ user.email }}</p>
-        <div class="member-badge">
-          <span class="badge-icon">&diams;</span>
-          <span class="badge-text">Night Journey Club Member</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">&bull;</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ user.city || 'Not Set' }}</span>
+          <span class="stat-label">Home City</span>
         </div>
       </div>
     </div>
 
-    <div class="profile-content">
-      <!-- Stats Cards -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <span class="stat-icon">&bull;</span>
-          <div class="stat-info">
-            <span class="stat-value">{{ memberSince }}</span>
-            <span class="stat-label">Member Since</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <span class="stat-icon">&bull;</span>
-          <div class="stat-info">
-            <span class="stat-value">{{ totalBookings }}</span>
-            <span class="stat-label">Total Journeys</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <span class="stat-icon">&bull;</span>
-          <div class="stat-info">
-            <span class="stat-value">{{ user.city || 'Not Set' }}</span>
-            <span class="stat-label">Home City</span>
-          </div>
-        </div>
+    @if (successMessage()) {
+    <div class="success-message">
+      <span class="success-icon">&check;</span>
+      <span>{{ successMessage() }}</span>
+    </div>
+    }
+
+    @if (errorMessage()) {
+    <div class="error-message">
+      <span class="error-icon">!</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
+    }
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h2 class="card-title">Personal Details</h2>
+        <button class="edit-btn" (click)="toggleEdit()">
+          @if (isEditing()) {
+          <span>&times; Cancel</span>
+          } @else {
+          <span>Edit Profile</span>
+          }
+        </button>
       </div>
 
-      @if (successMessage()) {
-        <div class="success-message">
-          <span class="success-icon">&check;</span>
-          <span>{{ successMessage() }}</span>
-        </div>
-      }
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+        <div class="form-section">
+          <h3 class="section-title">Identity</h3>
 
-      @if (errorMessage()) {
-        <div class="error-message">
-          <span class="error-icon">!</span>
-          <span>{{ errorMessage() }}</span>
-        </div>
-      }
-
-      <!-- Profile Card -->
-      <div class="profile-card">
-        <div class="card-header">
-          <h2 class="card-title">Personal Details</h2>
-          <button class="edit-btn" (click)="toggleEdit()">
-            @if (isEditing()) {
-              <span>&times; Cancel</span>
-            } @else {
-              <span>Edit Profile</span>
-            }
-          </button>
-        </div>
-
-        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-          <div class="form-section">
-            <h3 class="section-title">Identity</h3>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Full Name <span class="required" *ngIf="isEditing()">*</span></label>
-                @if (isEditing()) {
-                  <input
-                    type="text"
-                    formControlName="fullName"
-                    [class.invalid]="profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched"
-                  >
-                  @if (profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched) {
-                    <span class="field-error">{{ getNameError() }}</span>
-                  }
-                } @else {
-                  <div class="display-value">{{ user.fullName }}</div>
-                }
-              </div>
-
-              <div class="form-group">
-                <label>Email Address</label>
-                <div class="display-value locked">
-                  <span>{{ user.email }}</span>
-                  <span class="lock-icon">&bull;</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Phone Number <span class="required" *ngIf="isEditing()">*</span></label>
-                @if (isEditing()) {
-                  <input
-                    type="tel"
-                    formControlName="phone"
-                    maxlength="10"
-                    [class.invalid]="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched"
-                  >
-                  @if (profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched) {
-                    <span class="field-error">{{ getPhoneError() }}</span>
-                  }
-                } @else {
-                  <div class="display-value">{{ user.phone }}</div>
-                }
-              </div>
-
-              <div class="form-group">
-                <label>Home City</label>
-                @if (isEditing()) {
-                  <select formControlName="city">
-                    <option value="">Select city</option>
-                    @for (city of cities; track city.id) {
-                      <option [value]="city.name">{{ city.name }}</option>
-                    }
-                  </select>
-                } @else {
-                  <div class="display-value">{{ user.city || 'Not specified' }}</div>
-                }
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <h3 class="section-title">Preferred Routes</h3>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Preferred From</label>
-                @if (isEditing()) {
-                  <select formControlName="preferredFrom" [class.invalid]="profileForm.hasError('sameRoute')">
-                    <option value="">Select origin</option>
-                    @for (city of cities; track city.id) {
-                      <option [value]="city.name">{{ city.name }}</option>
-                    }
-                  </select>
-                } @else {
-                  <div class="display-value">{{ user.preferredFrom || 'Not specified' }}</div>
-                }
-              </div>
-
-              <div class="form-group">
-                <label>Preferred To</label>
-                @if (isEditing()) {
-                  <select formControlName="preferredTo" [class.invalid]="profileForm.hasError('sameRoute')">
-                    <option value="">Select destination</option>
-                    @for (city of cities; track city.id) {
-                      <option [value]="city.name">{{ city.name }}</option>
-                    }
-                  </select>
-                } @else {
-                  <div class="display-value">{{ user.preferredTo || 'Not specified' }}</div>
-                }
-              </div>
-            </div>
-            @if (profileForm.hasError('sameRoute') && isEditing()) {
-              <span class="field-error route-error">{{ getRouteError() }}</span>
-            }
-          </div>
-
-          <div class="form-section">
-            <h3 class="section-title">Traveler Type</h3>
-
-            <div class="form-group full">
-              <label>What kind of traveler are you?</label>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name <span class="required" *ngIf="isEditing()">*</span></label>
               @if (isEditing()) {
-                <textarea formControlName="bio" rows="3" placeholder="Tell us about your travel style..."></textarea>
+              <input type="text" formControlName="fullName"
+                [class.invalid]="profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched">
               } @else {
-                <div class="display-value bio">{{ user.bio || 'Not specified' }}</div>
+              <div class="display-value">{{ user.fullName }}</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Email Address</label>
+              <div class="display-value locked">
+                <span>{{ user.email }}</span>
+                <span class="lock-icon">&bull;</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone Number <span class="required" *ngIf="isEditing()">*</span></label>
+              @if (isEditing()) {
+              <input type="tel" formControlName="phone" maxlength="10"
+                [class.invalid]="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched">
+              } @else {
+              <div class="display-value">{{ user.phone || 'Not specified' }}</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Home City</label>
+              @if (isEditing()) {
+              <select formControlName="city">
+                <option value="">Select city</option>
+                @for (city of cities(); track city.id) {
+                <option [value]="city.name">{{ city.name }}</option>
+                }
+              </select>
+              } @else {
+              <div class="display-value">{{ user.city || 'Not specified' }}</div>
               }
             </div>
           </div>
+        </div>
 
-          @if (isEditing()) {
-            <div class="form-actions">
-              <button type="submit" class="save-btn" [disabled]="isSaving() || profileForm.hasError('sameRoute')">
-                @if (isSaving()) {
-                  <span class="loading-spinner"></span>
-                  <span>Saving...</span>
-                } @else {
-                  <span>Save Changes</span>
-                }
-              </button>
-            </div>
-          }
-        </form>
-      </div>
-
-      <!-- Decorative Quote -->
-      <div class="profile-quote">
-        <span class="quote-mark">"</span>
-        <p class="quote-text">{{ user.bio || 'Every journey begins with a single step onto the bus.' }}</p>
-        <span class="quote-mark">"</span>
-      </div>
+        @if (isEditing()) {
+        <div class="form-actions">
+          <button type="submit" class="save-btn" [disabled]="isSaving()">
+            @if (isSaving()) {
+            <span class="loading-spinner"></span>
+            <span>Saving...</span>
+            } @else {
+            <span>Save Changes</span>
+            }
+          </button>
+        </div>
+        }
+      </form>
     </div>
+  </div>
   }
 </div>

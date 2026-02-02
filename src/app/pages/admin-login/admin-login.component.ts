@@ -1,8 +1,10 @@
+// src/app/pages/admin-login/admin-login.component.ts
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AdminService } from '../../services/admin.service';
+import { AuthService } from '../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-admin-login',
@@ -13,7 +15,7 @@ import { AdminService } from '../../services/admin.service';
 })
 export class AdminLoginComponent {
   private fb = inject(FormBuilder);
-  private adminService = inject(AdminService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -22,8 +24,7 @@ export class AdminLoginComponent {
   isLoading = signal(false);
 
   constructor() {
-    // If already logged in, redirect to dashboard
-    if (this.adminService.isAdminAuthenticated()) {
+    if (this.authService.isLoggedIn() && this.authService.getRole() === 'Admin') {
       this.router.navigate(['/admin/dashboard']);
     }
 
@@ -33,32 +34,9 @@ export class AdminLoginComponent {
     });
   }
 
-  getEmailError(): string {
-    const control = this.loginForm.get('email');
-    if (control?.hasError('required')) {
-      return 'Administrative identifier is required.';
-    }
-    if (control?.hasError('email')) {
-      return 'Please enter a valid administrative email format.';
-    }
-    return '';
-  }
-
-  getPasswordError(): string {
-    const control = this.loginForm.get('password');
-    if (control?.hasError('required')) {
-      return 'Master key is required for authentication.';
-    }
-    if (control?.hasError('minlength')) {
-      return 'Master key must contain at least 6 characters.';
-    }
-    return '';
-  }
-
-  onSubmit(): void {
+  async onSubmit() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
-      this.errorMessage.set('Please correct the errors above.');
       return;
     }
 
@@ -67,17 +45,31 @@ export class AdminLoginComponent {
 
     const { email, password } = this.loginForm.value;
 
-    // Simulate network delay
-    setTimeout(() => {
-      const result = this.adminService.adminLogin(email, password);
-
-      if (result.success) {
+    try {
+      const response = await firstValueFrom(this.authService.login(email, password));
+      if (response.role === 'Admin') {
         this.router.navigate(['/admin/dashboard']);
       } else {
-        this.errorMessage.set(result.message);
+        this.authService.logout();
+        this.errorMessage.set('Unauthorized. This access point is for administrators only.');
       }
-
+    } catch (error: any) {
+      this.errorMessage.set(error.error?.message || 'Administrative login failed.');
+    } finally {
       this.isLoading.set(false);
-    }, 800);
+    }
+  }
+
+  getEmailError(): string {
+    const control = this.loginForm.get('email');
+    if (control?.hasError('required')) return 'Required.';
+    if (control?.hasError('email')) return 'Invalid format.';
+    return '';
+  }
+
+  getPasswordError(): string {
+    const control = this.loginForm.get('password');
+    if (control?.hasError('required')) return 'Required.';
+    return '';
   }
 }

@@ -1,10 +1,13 @@
+// src/app/pages/admin-dashboard/admin-dashboard.component.ts
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
-import { User, Vendor, Bus, Booking, Route } from '../../models';
+import { AuthService } from '../../services/auth.service';
+import { Analytics, Vendor, formatCurrency as modelFormatCurrency } from '../../models';
+import { firstValueFrom } from 'rxjs';
 
-type TabType = 'overview' | 'users' | 'vendors' | 'buses' | 'routes' | 'bookings';
+type TabType = 'overview' | 'vendors';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -15,74 +18,47 @@ type TabType = 'overview' | 'users' | 'vendors' | 'buses' | 'routes' | 'bookings
 })
 export class AdminDashboardComponent implements OnInit {
   private adminService = inject(AdminService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
-  currentAdmin = this.adminService.currentAdmin;
   activeTab = signal<TabType>('overview');
   actionMessage = signal('');
   actionError = signal('');
 
-  // Data signals
-  users = signal<User[]>([]);
+  analytics = signal<Analytics | null>(null);
   vendors = signal<Vendor[]>([]);
-  buses = signal<Bus[]>([]);
-  bookings = signal<Booking[]>([]);
-  routes = signal<Route[]>([]);
-
-  // Stats
-  stats = signal({
-    totalUsers: 0,
-    totalVendors: 0,
-    activeVendors: 0,
-    totalBuses: 0,
-    activeBuses: 0,
-    totalBookings: 0,
-    confirmedBookings: 0,
-    cancelledBookings: 0,
-    totalRoutes: 0,
-    totalRevenue: 0
-  });
-
-  mostTravelledRoutes = signal<{ route: string; count: number }[]>([]);
-  peakTravelDates = signal<{ date: string; count: number }[]>([]);
-  vendorPerformance = signal<{ vendor: string; buses: number; enabled: boolean }[]>([]);
-  busTypeDistribution = signal<{ type: string; count: number }[]>([]);
 
   ngOnInit(): void {
-    if (!this.adminService.isAdminAuthenticated()) {
+    if (!this.authService.isLoggedIn() || this.authService.getRole() !== 'Admin') {
       this.router.navigate(['/admin']);
       return;
     }
-    this.loadAllData();
+    this.loadData();
   }
 
-  private loadAllData(): void {
-    // Load all data
-    this.users.set(this.adminService.getAllUsers());
-    this.vendors.set(this.adminService.getVendors());
-    this.buses.set(this.adminService.getAllBuses());
-    this.bookings.set(this.adminService.getAllBookings());
-    this.routes.set(this.adminService.getAllRoutes());
+  private async loadData() {
+    try {
+      const data = await firstValueFrom(this.adminService.getAnalytics());
+      this.analytics.set(data);
+      const vendorList = await firstValueFrom(this.adminService.getVendors());
+      this.vendors.set(vendorList);
+    } catch (error) {
+      console.error('Error loading admin data', error);
+    }
+  }
 
-    // Load stats
-    this.stats.set({
-      totalUsers: this.adminService.getUserCount(),
-      totalVendors: this.adminService.getVendorCount(),
-      activeVendors: this.adminService.getActiveVendorCount(),
-      totalBuses: this.adminService.getBusCount(),
-      activeBuses: this.adminService.getActiveBusCount(),
-      totalBookings: this.adminService.getBookingCount(),
-      confirmedBookings: this.adminService.getConfirmedBookingCount(),
-      cancelledBookings: this.adminService.getCancelledBookingCount(),
-      totalRoutes: this.adminService.getRouteCount(),
-      totalRevenue: this.adminService.getTotalRevenue()
-    });
-
-    // Load analytics
-    this.mostTravelledRoutes.set(this.adminService.getMostTravelledRoutes());
-    this.peakTravelDates.set(this.adminService.getPeakTravelDates());
-    this.vendorPerformance.set(this.adminService.getVendorPerformance());
-    this.busTypeDistribution.set(this.adminService.getBusTypeDistribution());
+  async toggleVendorStatus(id: string) {
+    try {
+      await firstValueFrom(this.adminService.toggleVendorStatus(id));
+      this.actionMessage.set('Vendor status updated.');
+      this.loadData();
+    } catch (error) {
+      this.actionError.set('Failed to update status.');
+    }
+    setTimeout(() => {
+      this.actionMessage.set('');
+      this.actionError.set('');
+    }, 3000);
   }
 
   switchTab(tab: TabType): void {
@@ -91,63 +67,12 @@ export class AdminDashboardComponent implements OnInit {
     this.actionError.set('');
   }
 
-  toggleVendorStatus(vendorId: string): void {
-    const result = this.adminService.toggleVendorStatus(vendorId);
-    if (result.success) {
-      this.actionMessage.set(result.message);
-      this.loadAllData();
-    } else {
-      this.actionError.set(result.message);
-    }
-    setTimeout(() => {
-      this.actionMessage.set('');
-      this.actionError.set('');
-    }, 3000);
-  }
-
-  toggleBusStatus(busId: string): void {
-    const result = this.adminService.toggleBusStatus(busId);
-    if (result.success) {
-      this.actionMessage.set(result.message);
-      this.loadAllData();
-    } else {
-      this.actionError.set(result.message);
-    }
-    setTimeout(() => {
-      this.actionMessage.set('');
-      this.actionError.set('');
-    }, 3000);
-  }
-
   logout(): void {
-    this.adminService.adminLogout();
+    this.authService.logout();
     this.router.navigate(['/admin']);
   }
 
-  formatDate(date: Date | string): string {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  }
-
-  getVendorName(vendorId: string | undefined): string {
-    if (!vendorId) return 'Unknown';
-    const vendor = this.vendors().find(v => v.id === vendorId);
-    return vendor?.companyName || 'Unknown';
-  }
-
-  getUserName(userId: string): string {
-    const user = this.users().find(u => u.id === userId);
-    return user?.fullName || 'Unknown User';
+    return modelFormatCurrency(amount);
   }
 }

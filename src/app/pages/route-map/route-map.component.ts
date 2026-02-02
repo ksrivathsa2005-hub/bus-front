@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+// src/app/pages/route-map/route-map.component.ts
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BusService } from '../../services/bus.service';
-import { BookingService } from '../../services/booking.service';
 import { AuthService } from '../../services/auth.service';
-import { City, Route, Bus } from '../../models';
+import { City } from '../../models';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-route-map',
@@ -13,69 +14,32 @@ import { City, Route, Bus } from '../../models';
   templateUrl: './route-map.component.html',
   styleUrl: './route-map.component.scss'
 })
-export class RouteMapComponent {
+export class RouteMapComponent implements OnInit {
   private busService = inject(BusService);
-  private bookingService = inject(BookingService);
   private authService = inject(AuthService);
 
-  cities = this.busService.getCities();
-  routes = this.busService.getRoutes();
-  currentUser = this.authService.currentUser;
+  cities = signal<City[]>([]);
+  isLoading = signal(true);
 
-  selectedRoute = signal<Route | null>(null);
-  selectedCity = signal<City | null>(null);
-  hoveredCity = signal<string | null>(null);
-
-  selectRoute(route: Route): void {
-    this.selectedRoute.set(route);
-    this.selectedCity.set(null);
+  ngOnInit(): void {
+    this.loadData();
   }
 
-  selectCity(city: City): void {
-    this.selectedCity.set(city);
-    this.selectedRoute.set(null);
+  private async loadData() {
+    this.isLoading.set(true);
+    try {
+      const data = await firstValueFrom(this.busService.getCities());
+      this.cities.set(data);
+    } catch (error) {
+      console.error('Failed to load map data', error);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
-  closePanel(): void {
-    this.selectedRoute.set(null);
-    this.selectedCity.set(null);
-  }
-
-  getBusesForRoute(route: Route): Bus[] {
-    return this.busService.getBusesForRoute(route.from, route.to);
-  }
-
-  getRoutesForCity(city: City): Route[] {
-    return this.routes.filter(r =>
-      r.from === city.name || r.to === city.name
-    );
-  }
-
-  getPastJourneysForRoute(route: Route): number {
-    const user = this.currentUser();
-    if (!user) return 0;
-    return this.bookingService.getUserJourneysForRoute(user.id, route.from, route.to).length;
-  }
-
-  getLineCoordinates(route: Route): { x1: number; y1: number; x2: number; y2: number } | null {
-    const fromCity = this.cities.find(c => c.name === route.from);
-    const toCity = this.cities.find(c => c.name === route.to);
-
-    if (!fromCity || !toCity) return null;
-
-    return {
-      x1: fromCity.coordinates.x,
-      y1: fromCity.coordinates.y,
-      x2: toCity.coordinates.x,
-      y2: toCity.coordinates.y
-    };
-  }
-
-  isRouteSelected(route: Route): boolean {
-    return this.selectedRoute()?.id === route.id;
-  }
-
-  isCitySelected(city: City): boolean {
-    return this.selectedCity()?.id === city.id;
+  // Simplified logic for a broken map (since coordinates are gone in new model)
+  getCityPosition(city: City) {
+    // Return some default or calculated positions if we want to show anything
+    return { x: 50, y: 50 };
   }
 }

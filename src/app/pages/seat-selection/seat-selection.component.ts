@@ -1,11 +1,13 @@
+// src/app/pages/seat-selection/seat-selection.component.ts
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { BusService } from '../../services/bus.service';
 import { AuthService } from '../../services/auth.service';
 import { BookingService } from '../../services/booking.service';
-import { Bus, Seat } from '../../models';
+import { Bus, Seat, CreateBookingRequest, PassengerRequest, Gender, GENDERS, calculateDuration, formatTime } from '../../models';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-seat-selection',
@@ -22,27 +24,38 @@ export class SeatSelectionComponent implements OnInit {
   private bookingService = inject(BookingService);
   private fb = inject(FormBuilder);
 
-  bus: Bus | undefined;
-  seats: Seat[] = [];
+  bus = signal<Bus | null>(null);
+  seats = signal<Seat[]>([]);
   date = '';
   selectedSeats = signal<Seat[]>([]);
   currentStep = signal<'seats' | 'details' | 'confirm'>('seats');
   isLoading = signal(false);
   validationError = signal('');
+  genders = GENDERS;
+
 
   passengerForm!: FormGroup;
-  currentUser = this.authService.currentUser;
 
   ngOnInit(): void {
     const busId = this.route.snapshot.params['id'];
     this.date = this.route.snapshot.queryParams['date'] || '';
-
-    this.bus = this.busService.getBusById(busId);
-    if (this.bus) {
-      this.seats = this.busService.getSeatsForBus(busId);
-    }
-
+    this.loadData(busId);
     this.initForm();
+  }
+
+  private async loadData(busId: string) {
+    this.isLoading.set(true);
+    try {
+      const busData = await firstValueFrom(this.busService.getBusById(busId));
+      this.bus.set(busData);
+      const layoutData = await firstValueFrom(this.busService.getSeatLayout(busId, this.date));
+      this.seats.set(layoutData.seats);
+    } catch (error) {
+      console.error('Failed to load bus or layout', error);
+      this.validationError.set('Failed to load bus or layout data.');
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   private initForm(): void {
@@ -55,47 +68,14 @@ export class SeatSelectionComponent implements OnInit {
     return this.passengerForm.get('passengers') as FormArray;
   }
 
-  // Custom validator for passenger name
-  nameValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (value && !/^[a-zA-Z\s]+$/.test(value)) {
-      return { invalidName: true };
-    }
-    if (value && value.trim().length < 2) {
-      return { minlength: true };
-    }
-    return null;
-  }
-
-  // Custom validator for age
-  ageValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (value !== null && value !== '') {
-      const age = Number(value);
-      if (isNaN(age) || !Number.isInteger(age)) {
-        return { invalidAge: true };
-      }
-      if (age < 1) {
-        return { minAge: true };
-      }
-      if (age > 120) {
-        return { maxAge: true };
-      }
-      if (age < 5) {
-        return { infantAge: true };
-      }
-    }
-    return null;
-  }
-
   toggleSeat(seat: Seat): void {
-    if (seat.isBooked) return;
+    if (!seat.isAvailable) return;
 
     const selected = this.selectedSeats();
-    const index = selected.findIndex(s => s.id === seat.id);
+    const index = selected.findIndex(s => s.seatNumber === seat.seatNumber);
 
     if (index > -1) {
-      this.selectedSeats.set(selected.filter(s => s.id !== seat.id));
+      this.selectedSeats.set(selected.filter(s => s.seatNumber !== seat.seatNumber));
     } else {
       if (selected.length < 6) {
         this.selectedSeats.set([...selected, seat]);
@@ -106,84 +86,34 @@ export class SeatSelectionComponent implements OnInit {
   }
 
   isSeatSelected(seat: Seat): boolean {
-    return this.selectedSeats().some(s => s.id === seat.id);
+    return this.selectedSeats().some(s => s.seatNumber === seat.seatNumber);
   }
 
   get totalFare(): number {
-    return this.selectedSeats().reduce((sum, seat) => sum + seat.price, 0);
+    return this.selectedSeats().length * (this.bus()?.fare || 0);
   }
 
-  proceedToDetails(): void {
+  async proceedToDetails() {
     if (this.selectedSeats().length === 0) {
       this.validationError.set('Please select at least one seat to proceed.');
       return;
     }
 
     this.validationError.set('');
-
-    // Clear and rebuild passengers form
     this.passengersArray.clear();
-    const user = this.currentUser();
+
+    const currentUser = await firstValueFrom(this.authService.currentUser$);
 
     this.selectedSeats().forEach((seat, index) => {
       this.passengersArray.push(this.fb.group({
-        name: [index === 0 && user ? user.fullName : '', [Validators.required, this.nameValidator.bind(this)]],
-        age: ['', [Validators.required, this.ageValidator.bind(this)]],
+        name: [index === 0 && currentUser ? currentUser.fullName : '', Validators.required],
+        age: ['', [Validators.required, Validators.min(1), Validators.max(120)]],
         gender: ['', Validators.required],
-        seatNumber: [seat.number]
+        seatNumber: [seat.seatNumber]
       }));
     });
 
     this.currentStep.set('details');
-  }
-
-  getPassengerNameError(index: number): string {
-    const control = this.passengersArray.at(index).get('name');
-    if (control?.hasError('required')) {
-      return 'Passenger name is required.';
-    }
-    if (control?.hasError('invalidName')) {
-      return 'Name should only contain letters and spaces.';
-    }
-    if (control?.hasError('minlength')) {
-      return 'Name must be at least 2 characters.';
-    }
-    return '';
-  }
-
-  getPassengerAgeError(index: number): string {
-    const control = this.passengersArray.at(index).get('age');
-    if (control?.hasError('required')) {
-      return 'Age is required.';
-    }
-    if (control?.hasError('invalidAge')) {
-      return 'Please enter a valid age.';
-    }
-    if (control?.hasError('minAge')) {
-      return 'Age must be at least 1.';
-    }
-    if (control?.hasError('maxAge')) {
-      return 'Age cannot exceed 120 years.';
-    }
-    if (control?.hasError('infantAge')) {
-      return 'Children below 5 years require guardian accompaniment.';
-    }
-    return '';
-  }
-
-  getPassengerGenderError(index: number): string {
-    const control = this.passengersArray.at(index).get('gender');
-    if (control?.hasError('required')) {
-      return 'Please select gender.';
-    }
-    return '';
-  }
-
-  hasInfants(): boolean {
-    return this.passengersArray.controls.some(control => {
-      const age = control.get('age')?.value;
-      return age && Number(age) < 5;
-    });
   }
 
   proceedToConfirm(): void {
@@ -192,13 +122,6 @@ export class SeatSelectionComponent implements OnInit {
       this.validationError.set('Please fill in all passenger details correctly.');
       return;
     }
-
-    // Check for infants
-    if (this.hasInfants()) {
-      this.validationError.set('Children below 5 years need guardian accompaniment. Please update the age or add an adult guardian.');
-      return;
-    }
-
     this.validationError.set('');
     this.currentStep.set('confirm');
   }
@@ -211,40 +134,52 @@ export class SeatSelectionComponent implements OnInit {
     }
   }
 
-  confirmBooking(): void {
-    if (!this.bus || !this.currentUser()) return;
+  async confirmBooking() {
+    const bus = this.bus();
+    if (!bus) return;
 
     this.isLoading.set(true);
+    this.validationError.set('');
 
-    const booking = {
-      userId: this.currentUser()!.id,
-      busId: this.bus.id,
-      busName: this.bus.name,
-      from: this.bus.from,
-      to: this.bus.to,
-      date: this.date,
-      departureTime: this.bus.departureTime,
-      arrivalTime: this.bus.arrivalTime,
-      seats: this.selectedSeats().map(s => s.number),
-      passengers: this.passengerForm.value.passengers,
-      totalFare: this.totalFare
+    const passengers: PassengerRequest[] = this.passengersArray.value.map((p: any) => ({
+      name: p.name,
+      age: Number(p.age),
+      gender: Number(p.gender) as Gender,
+      seatNumber: p.seatNumber
+    }));
+
+    const request: CreateBookingRequest = {
+      busId: bus.id,
+      travelDate: this.date,
+      seats: this.selectedSeats().map(s => s.seatNumber),
+      passengers: passengers
     };
 
-    setTimeout(() => {
-      const newBooking = this.bookingService.createBooking(booking);
-      this.router.navigate(['/booking-confirmation', newBooking.id]);
+    try {
+      const response = await firstValueFrom(this.bookingService.createBooking(request));
+      this.router.navigate(['/booking-confirmation', response.id]);
+    } catch (error: any) {
+      this.validationError.set(error.error?.message || 'Booking failed. Some seats might have been taken.');
+    } finally {
       this.isLoading.set(false);
-    }, 1500);
+    }
   }
 
-  getSeatRows(): Seat[][] {
-    const rows: Seat[][] = [];
-    const seatsPerRow = this.bus?.type === 'Sleeper' ? 6 : 8;
+  getSeatsByRow(row: number): Seat[] {
+    return this.seats().filter(s => s.row === row).sort((a, b) => a.column - b.column);
+  }
 
-    for (let i = 0; i < this.seats.length; i += seatsPerRow) {
-      rows.push(this.seats.slice(i, i + seatsPerRow));
-    }
+  getRows(): number[] {
+    const rows = new Set(this.seats().map(s => s.row));
+    return Array.from(rows).sort((a, b) => a - b);
+  }
 
-    return rows;
+  formatBusTime(time: string): string {
+    return formatTime(time);
+  }
+
+  getBusDuration(): string {
+    const bus = this.bus();
+    return bus ? calculateDuration(bus.departureTime, bus.arrivalTime) : '';
   }
 }

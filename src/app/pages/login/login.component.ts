@@ -1,8 +1,10 @@
+// src/app/pages/login/login.component.ts
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -28,32 +30,9 @@ export class LoginComponent {
     });
   }
 
-  getEmailError(): string {
-    const control = this.loginForm.get('email');
-    if (control?.hasError('required')) {
-      return 'Email address is required to access the route.';
-    }
-    if (control?.hasError('email')) {
-      return 'Please enter a valid email format (e.g., traveler@journey.com).';
-    }
-    return '';
-  }
-
-  getPasswordError(): string {
-    const control = this.loginForm.get('password');
-    if (control?.hasError('required')) {
-      return 'Password is required for authentication.';
-    }
-    if (control?.hasError('minlength')) {
-      return 'Password must contain at least 6 characters.';
-    }
-    return '';
-  }
-
-  onSubmit(): void {
+  async onSubmit() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
-      this.errorMessage.set('Please correct the errors above to proceed.');
       return;
     }
 
@@ -62,18 +41,27 @@ export class LoginComponent {
 
     const { email, password } = this.loginForm.value;
 
-    // Simulate network delay
-    setTimeout(() => {
-      const result = this.authService.login(email, password);
-
-      if (result.success) {
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-        this.router.navigateByUrl(returnUrl);
-      } else {
-        this.errorMessage.set(result.message);
-      }
-
+    try {
+      await firstValueFrom(this.authService.login(email, password));
+      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+      this.router.navigateByUrl(returnUrl);
+    } catch (error: any) {
+      this.errorMessage.set(error.error?.message || 'Authentication failed. Please check your credentials.');
+    } finally {
       this.isLoading.set(false);
-    }, 800);
+    }
+  }
+
+  getEmailError(): string {
+    const control = this.loginForm.get('email');
+    if (control?.hasError('required')) return 'Email is required.';
+    if (control?.hasError('email')) return 'Invalid email format.';
+    return '';
+  }
+
+  getPasswordError(): string {
+    const control = this.loginForm.get('password');
+    if (control?.hasError('required')) return 'Password is required.';
+    return '';
   }
 }

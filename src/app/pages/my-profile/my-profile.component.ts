@@ -1,9 +1,11 @@
+// src/app/pages/my-profile/my-profile.component.ts
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { BusService } from '../../services/bus.service';
-import { BookingService } from '../../services/booking.service';
+import { City, UserProfile, AuthResponse } from '../../models';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-my-profile',
@@ -15,11 +17,10 @@ import { BookingService } from '../../services/booking.service';
 export class MyProfileComponent implements OnInit {
   private authService = inject(AuthService);
   private busService = inject(BusService);
-  private bookingService = inject(BookingService);
   private fb = inject(FormBuilder);
 
-  currentUser = this.authService.currentUser;
-  cities = this.busService.getCities();
+  currentUser = signal<UserProfile | null>(null);
+  cities = signal<City[]>([]);
   isEditing = signal(false);
   isSaving = signal(false);
   successMessage = signal('');
@@ -28,94 +29,53 @@ export class MyProfileComponent implements OnInit {
   profileForm!: FormGroup;
 
   ngOnInit(): void {
+    this.loadData();
     this.initForm();
   }
 
+  private async loadData() {
+    try {
+      const user = await firstValueFrom(this.authService.getProfile());
+      this.currentUser.set(user);
+      this.updateForm(user);
+      const cityList = await firstValueFrom(this.busService.getCities());
+      this.cities.set(cityList);
+    } catch (error) {
+      console.error('Failed to load profile data', error);
+    }
+  }
+
   private initForm(): void {
-    const user = this.currentUser();
     this.profileForm = this.fb.group({
-      fullName: [user?.fullName || '', [Validators.required, Validators.minLength(3), Validators.maxLength(50), this.nameValidator]],
-      email: [{ value: user?.email || '', disabled: true }],
-      phone: [user?.phone || '', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-      city: [user?.city || ''],
-      preferredFrom: [user?.preferredFrom || ''],
-      preferredTo: [user?.preferredTo || ''],
-      bio: [user?.bio || '']
-    }, { validators: this.routeValidator });
+      fullName: ['', [Validators.required, Validators.minLength(3)]],
+      email: [{ value: '', disabled: true }],
+      phone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+      city: ['']
+    });
   }
 
-  // Custom validator: Name should contain only letters and spaces
-  nameValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (value && !/^[a-zA-Z\s]+$/.test(value)) {
-      return { invalidName: true };
-    }
-    return null;
-  }
-
-  // Custom validator: From and To cannot be same
-  routeValidator(group: FormGroup): ValidationErrors | null {
-    const from = group.get('preferredFrom')?.value;
-    const to = group.get('preferredTo')?.value;
-    if (from && to && from === to) {
-      return { sameRoute: true };
-    }
-    return null;
-  }
-
-  getNameError(): string {
-    const control = this.profileForm.get('fullName');
-    if (control?.hasError('required')) {
-      return 'Name is required.';
-    }
-    if (control?.hasError('minlength')) {
-      return 'Name must be at least 3 characters.';
-    }
-    if (control?.hasError('maxlength')) {
-      return 'Name cannot exceed 50 characters.';
-    }
-    if (control?.hasError('invalidName')) {
-      return 'Name should only contain letters and spaces.';
-    }
-    return '';
-  }
-
-  getPhoneError(): string {
-    const control = this.profileForm.get('phone');
-    if (control?.hasError('required')) {
-      return 'Phone number is required.';
-    }
-    if (control?.hasError('pattern')) {
-      return 'Please enter a valid 10-digit phone number.';
-    }
-    return '';
-  }
-
-  getRouteError(): string {
-    if (this.profileForm.hasError('sameRoute')) {
-      return 'Origin and destination cannot be the same city.';
-    }
-    return '';
+  private updateForm(user: UserProfile): void {
+    this.profileForm.patchValue({
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone || '',
+      city: user.city || ''
+    });
   }
 
   toggleEdit(): void {
     if (this.isEditing()) {
-      this.initForm();
+      const user = this.currentUser();
+      if (user) this.updateForm(user);
     }
     this.isEditing.set(!this.isEditing());
     this.successMessage.set('');
     this.errorMessage.set('');
   }
 
-  saveProfile(): void {
+  async saveProfile() {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
-      this.errorMessage.set('Please correct the errors before saving.');
-      return;
-    }
-
-    if (this.profileForm.hasError('sameRoute')) {
-      this.errorMessage.set('Origin and destination cannot be the same city.');
       return;
     }
 
@@ -126,34 +86,26 @@ export class MyProfileComponent implements OnInit {
     const updates = {
       fullName: this.profileForm.value.fullName,
       phone: this.profileForm.value.phone,
-      city: this.profileForm.value.city,
-      preferredFrom: this.profileForm.value.preferredFrom,
-      preferredTo: this.profileForm.value.preferredTo,
-      bio: this.profileForm.value.bio
+      city: this.profileForm.value.city
     };
 
-    setTimeout(() => {
-      const result = this.authService.updateProfile(updates);
-      if (result.success) {
-        this.successMessage.set(result.message);
-        this.isEditing.set(false);
-      } else {
-        this.errorMessage.set(result.message);
-      }
+    try {
+      // Assuming updateProfile exists or we add it to AuthService
+      await firstValueFrom(this.authService.updateProfile(updates));
+      this.successMessage.set('Profile updated successfully.');
+      this.isEditing.set(false);
+      this.loadData();
+    } catch (error: any) {
+      this.errorMessage.set(error.error?.message || 'Failed to update profile.');
+    } finally {
       this.isSaving.set(false);
-    }, 800);
-  }
-
-  get totalBookings(): number {
-    const user = this.currentUser();
-    if (!user) return 0;
-    return this.bookingService.getUserBookings(user.id).length;
+    }
   }
 
   get memberSince(): string {
     const user = this.currentUser();
     if (!user) return '';
-    return new Date(user.createdAt).toLocaleDateString('en-US', {
+    return new Date().toLocaleDateString('en-IN', {
       month: 'long',
       year: 'numeric'
     });

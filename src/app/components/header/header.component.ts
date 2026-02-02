@@ -14,8 +14,11 @@ export class HeaderComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  isAuthenticated = this.authService.isAuthenticated;
-  currentUser = this.authService.currentUser;
+  currentUser$ = this.authService.currentUser$;
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
 
   get greeting(): string {
     const hour = new Date().getHours();
