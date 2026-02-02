@@ -218,16 +218,15 @@ export class RegisterComponent {
       bio: this.step2Form.value.bio || ''
     };
 
-    setTimeout(() => {
-      const result = this.authService.register(userData);
-
-      if (result.success) {
+    this.authService.register(userData).subscribe({
+      next: (response) => {
         this.router.navigate(['/']);
-      } else {
-        this.errorMessage.set(result.message);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        this.errorMessage.set(error.message || 'Registration failed. Please try again.');
+        this.isLoading.set(false);
       }
-
-      this.isLoading.set(false);
-    }, 1000);
+    });
   }
 }

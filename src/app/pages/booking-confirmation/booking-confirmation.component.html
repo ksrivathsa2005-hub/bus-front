@@ -1,5 +1,5 @@
 <div class="confirmation-page page-enter">
-  @if (booking) {
+  @if (booking(); as bookingData) {
     <div class="success-banner">
       <div class="success-icon">✓</div>
       <h1 class="success-title">Booking Confirmed!</h1>
@@ -19,7 +19,7 @@
           </div>
           <div class="ticket-id">
             <span class="id-label">Booking ID</span>
-            <span class="id-value">{{ booking.oderId }}</span>
+            <span class="id-value">{{ bookingData.oderId }}</span>
           </div>
         </div>
 
@@ -33,8 +33,8 @@
           <!-- Route Section -->
           <div class="route-section">
             <div class="route-point">
-              <span class="point-time">{{ booking.departureTime }}</span>
-              <span class="point-city">{{ booking.from }}</span>
+              <span class="point-time">{{ bookingData.departureTime }}</span>
+              <span class="point-city">{{ bookingData.from }}</span>
             </div>
             <div class="route-line">
               <div class="line"></div>
@@ -42,8 +42,8 @@
               <div class="line"></div>
             </div>
             <div class="route-point">
-              <span class="point-time">{{ booking.arrivalTime }}</span>
-              <span class="point-city">{{ booking.to }}</span>
+              <span class="point-time">{{ bookingData.arrivalTime }}</span>
+              <span class="point-city">{{ bookingData.to }}</span>
             </div>
           </div>
 
@@ -51,23 +51,23 @@
           <div class="details-grid">
             <div class="detail-item">
               <span class="detail-label">Bus</span>
-              <span class="detail-value">{{ booking.busName }}</span>
+              <span class="detail-value">{{ bookingData.busName }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Date</span>
-              <span class="detail-value">{{ formatDate(booking.date) }}</span>
+              <span class="detail-value">{{ formatDate(bookingData.date) }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Seats</span>
               <span class="detail-value seats">
-                @for (seat of booking.seats; track seat) {
+                @for (seat of bookingData.seats; track seat) {
                   <span class="seat-badge">{{ seat }}</span>
                 }
               </span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Passengers</span>
-              <span class="detail-value">{{ booking.passengers.length }}</span>
+              <span class="detail-value">{{ bookingData.passengers.length }}</span>
             </div>
           </div>
 
@@ -75,7 +75,7 @@
           <div class="passengers-section">
             <h3 class="section-title">Passengers</h3>
             <div class="passengers-list">
-              @for (passenger of booking.passengers; track $index) {
+              @for (passenger of bookingData.passengers; track $index) {
                 <div class="passenger-item">
                   <span class="passenger-seat">{{ passenger.seatNumber }}</span>
                   <span class="passenger-name">{{ passenger.name }}</span>
@@ -95,10 +95,10 @@
         <div class="ticket-footer">
           <div class="total-fare">
             <span class="fare-label">Total Fare</span>
-            <span class="fare-amount">₹{{ booking.totalFare }}</span>
+            <span class="fare-amount">₹{{ bookingData.totalFare }}</span>
           </div>
-          <div class="status-stamp" [class]="booking.status">
-            {{ booking.status | uppercase }}
+          <div class="status-stamp" [class]="bookingData.status">
+            {{ bookingData.status | uppercase }}
           </div>
         </div>
 
@@ -106,7 +106,7 @@
         <div class="decorative-stamps">
           <div class="stamp stamp-1">
             <span>N.J.C.</span>
-            <span>{{ booking.date.split('-')[0] }}</span>
+            <span>{{ bookingData.date.split('-')[0] }}</span>
           </div>
         </div>
       </div>

@@ -25,10 +25,24 @@ export class RouteMapComponent {
   selectedRoute = signal<Route | null>(null);
   selectedCity = signal<City | null>(null);
   hoveredCity = signal<string | null>(null);
+  routeBuses = signal<Bus[]>([]);
+  routePastJourneys = signal<number>(0);
 
   selectRoute(route: Route): void {
     this.selectedRoute.set(route);
     this.selectedCity.set(null);
+
+    // Load buses for this route
+    this.busService.getBusesForRoute(route.from, route.to).subscribe({
+      next: (buses) => this.routeBuses.set(buses),
+      error: () => this.routeBuses.set([])
+    });
+
+    // Load past journeys count
+    this.bookingService.getUserJourneysForRoute(route.from, route.to).subscribe({
+      next: (bookings) => this.routePastJourneys.set(bookings.length),
+      error: () => this.routePastJourneys.set(0)
+    });
   }
 
   selectCity(city: City): void {
@@ -41,21 +55,12 @@ export class RouteMapComponent {
     this.selectedCity.set(null);
   }
 
-  getBusesForRoute(route: Route): Bus[] {
-    return this.busService.getBusesForRoute(route.from, route.to);
-  }
-
   getRoutesForCity(city: City): Route[] {
     return this.routes.filter(r =>
       r.from === city.name || r.to === city.name
     );
   }
 
-  getPastJourneysForRoute(route: Route): number {
-    const user = this.currentUser();
-    if (!user) return 0;
-    return this.bookingService.getUserJourneysForRoute(user.id, route.from, route.to).length;
-  }
 
   getLineCoordinates(route: Route): { x1: number; y1: number; x2: number; y2: number } | null {
     const fromCity = this.cities.find(c => c.name === route.from);

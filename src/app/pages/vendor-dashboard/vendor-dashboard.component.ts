@@ -93,27 +93,37 @@ export class VendorDashboardComponent implements OnInit {
   }
 
   private loadBuses(): void {
-    const vendor = this.currentVendor();
-    if (!vendor) return;
-    this.buses.set(this.vendorService.getVendorBuses(vendor.id));
+    this.vendorService.getVendorBuses().subscribe({
+      next: (buses) => this.buses.set(buses),
+      error: () => this.buses.set([])
+    });
   }
 
   private loadStats(): void {
-    const vendor = this.currentVendor();
-    if (!vendor) return;
-
-    const buses = this.vendorService.getVendorBuses(vendor.id);
-
-    this.stats.set({
-      totalBuses: buses.length,
-      activeBuses: buses.filter(b => b.isEnabled !== false).length,
-      totalBookings: this.vendorService.getVendorTotalBookings(vendor.id),
-      totalRevenue: this.vendorService.getVendorRevenue(vendor.id),
-      seatOccupancy: this.vendorService.getVendorSeatOccupancy(vendor.id),
-      mostPopularRoute: this.vendorService.getVendorMostPopularRoute(vendor.id)
+    this.vendorService.getDashboard().subscribe({
+      next: (dashboard) => {
+        this.stats.set({
+          totalBuses: dashboard.totalBuses,
+          activeBuses: dashboard.activeBuses,
+          totalBookings: dashboard.totalBookings,
+          totalRevenue: dashboard.totalRevenue,
+          seatOccupancy: dashboard.seatOccupancy,
+          mostPopularRoute: dashboard.mostPopularRoute
+        });
+        this.routeStats.set(dashboard.routeStats || []);
+      },
+      error: () => {
+        // Set defaults on error
+        this.stats.set({
+          totalBuses: 0,
+          activeBuses: 0,
+          totalBookings: 0,
+          totalRevenue: 0,
+          seatOccupancy: 0,
+          mostPopularRoute: 'No data available'
+        });
+      }
     });
-
-    this.routeStats.set(this.vendorService.getVendorRouteStats(vendor.id));
   }
 
   switchTab(tab: TabType): void {
@@ -133,15 +143,18 @@ export class VendorDashboardComponent implements OnInit {
 
   // ========== BUS MANAGEMENT ==========
   toggleBusStatus(busId: string): void {
-    const result = this.vendorService.toggleBusStatus(busId);
-    if (result.success) {
-      this.actionMessage.set(result.message);
-      this.loadBuses();
-      this.loadStats();
-    } else {
-      this.actionError.set(result.message);
-    }
-    this.clearMessages();
+    this.vendorService.toggleBusStatus(busId).subscribe({
+      next: (result) => {
+        this.actionMessage.set(result.message);
+        this.loadBuses();
+        this.loadStats();
+        this.clearMessages();
+      },
+      error: (err) => {
+        this.actionError.set(err.message || 'Failed to toggle bus status.');
+        this.clearMessages();
+      }
+    });
   }
 
   editBus(bus: Bus): void {
@@ -162,19 +175,19 @@ export class VendorDashboardComponent implements OnInit {
   }
 
   deleteBus(busId: string): void {
-    const vendor = this.currentVendor();
-    if (!vendor) return;
-
     if (confirm('Are you sure you want to remove this bus from your fleet?')) {
-      const result = this.vendorService.deleteBus(busId, vendor.id);
-      if (result.success) {
-        this.actionMessage.set(result.message);
-        this.loadBuses();
-        this.loadStats();
-      } else {
-        this.actionError.set(result.message);
-      }
-      this.clearMessages();
+      this.vendorService.deleteBus(busId).subscribe({
+        next: (result) => {
+          this.actionMessage.set(result.message);
+          this.loadBuses();
+          this.loadStats();
+          this.clearMessages();
+        },
+        error: (err) => {
+          this.actionError.set(err.message || 'Failed to delete bus.');
+          this.clearMessages();
+        }
+      });
     }
   }
 
@@ -185,14 +198,17 @@ export class VendorDashboardComponent implements OnInit {
       return;
     }
 
-    const result = this.vendorService.updateBus(busId, { fare: newFare });
-    if (result.success) {
-      this.actionMessage.set('Fare updated successfully.');
-      this.loadBuses();
-    } else {
-      this.actionError.set(result.message);
-    }
-    this.clearMessages();
+    this.vendorService.updateBus(busId, { fare: newFare }).subscribe({
+      next: () => {
+        this.actionMessage.set('Fare updated successfully.');
+        this.loadBuses();
+        this.clearMessages();
+      },
+      error: (err) => {
+        this.actionError.set(err.message || 'Failed to update fare.');
+        this.clearMessages();
+      }
+    });
   }
 
   // ========== ADD/EDIT BUS ==========
@@ -216,57 +232,59 @@ export class VendorDashboardComponent implements OnInit {
 
     const formData = this.busForm.value;
 
-    setTimeout(() => {
-      if (this.editingBusId()) {
-        // Update existing bus
-        const result = this.vendorService.updateBus(this.editingBusId()!, {
-          name: formData.name,
-          type: formData.type as Bus['type'],
-          from: formData.from,
-          to: formData.to,
-          departureTime: formData.departureTime,
-          arrivalTime: formData.arrivalTime,
-          duration: formData.duration,
-          totalSeats: formData.totalSeats,
-          fare: formData.fare,
-          amenities: formData.amenities
-        });
-
-        if (result.success) {
+    if (this.editingBusId()) {
+      // Update existing bus
+      this.vendorService.updateBus(this.editingBusId()!, {
+        name: formData.name,
+        type: formData.type as Bus['type'],
+        from: formData.from,
+        to: formData.to,
+        departureTime: formData.departureTime,
+        arrivalTime: formData.arrivalTime,
+        duration: formData.duration,
+        totalSeats: formData.totalSeats,
+        fare: formData.fare,
+        amenities: formData.amenities
+      }).subscribe({
+        next: () => {
           this.actionMessage.set('Bus updated successfully.');
           this.switchTab('buses');
-        } else {
-          this.actionError.set(result.message);
+          this.loadBuses();
+          this.loadStats();
+          this.isSubmitting.set(false);
+        },
+        error: (err) => {
+          this.actionError.set(err.message || 'Failed to update bus.');
+          this.isSubmitting.set(false);
         }
-      } else {
-        // Add new bus
-        const result = this.vendorService.addBus({
-          name: formData.name,
-          type: formData.type as Bus['type'],
-          from: formData.from,
-          to: formData.to,
-          departureTime: formData.departureTime,
-          arrivalTime: formData.arrivalTime,
-          duration: formData.duration,
-          totalSeats: formData.totalSeats,
-          fare: formData.fare,
-          amenities: formData.amenities,
-          vendorId: vendor.id,
-          isEnabled: true
-        });
-
-        if (result.success) {
+      });
+    } else {
+      // Add new bus
+      this.vendorService.addBus({
+        name: formData.name,
+        type: formData.type as Bus['type'],
+        from: formData.from,
+        to: formData.to,
+        departureTime: formData.departureTime,
+        arrivalTime: formData.arrivalTime,
+        duration: formData.duration,
+        totalSeats: formData.totalSeats,
+        fare: formData.fare,
+        amenities: formData.amenities
+      }).subscribe({
+        next: (result) => {
           this.actionMessage.set(result.message);
           this.switchTab('buses');
-        } else {
-          this.actionError.set(result.message);
+          this.loadBuses();
+          this.loadStats();
+          this.isSubmitting.set(false);
+        },
+        error: (err) => {
+          this.actionError.set(err.message || 'Failed to add bus.');
+          this.isSubmitting.set(false);
         }
-      }
-
-      this.loadBuses();
-      this.loadStats();
-      this.isSubmitting.set(false);
-    }, 800);
+      });
+    }
   }
 
   cancelEdit(): void {
@@ -315,7 +333,8 @@ export class VendorDashboardComponent implements OnInit {
   }
 
   getBookedSeats(busId: string): number {
-    return this.vendorService.getBookedSeatsForBus(busId);
+    // Booked seats count should come from the dashboard API
+    return 0;
   }
 
   private clearMessages(): void {

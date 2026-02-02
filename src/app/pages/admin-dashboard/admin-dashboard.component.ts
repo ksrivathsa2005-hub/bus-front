@@ -57,32 +57,55 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   private loadAllData(): void {
-    // Load all data
-    this.users.set(this.adminService.getAllUsers());
-    this.vendors.set(this.adminService.getVendors());
-    this.buses.set(this.adminService.getAllBuses());
-    this.bookings.set(this.adminService.getAllBookings());
-    this.routes.set(this.adminService.getAllRoutes());
-
-    // Load stats
-    this.stats.set({
-      totalUsers: this.adminService.getUserCount(),
-      totalVendors: this.adminService.getVendorCount(),
-      activeVendors: this.adminService.getActiveVendorCount(),
-      totalBuses: this.adminService.getBusCount(),
-      activeBuses: this.adminService.getActiveBusCount(),
-      totalBookings: this.adminService.getBookingCount(),
-      confirmedBookings: this.adminService.getConfirmedBookingCount(),
-      cancelledBookings: this.adminService.getCancelledBookingCount(),
-      totalRoutes: this.adminService.getRouteCount(),
-      totalRevenue: this.adminService.getTotalRevenue()
+    // Load analytics from API
+    this.adminService.getAnalytics().subscribe({
+      next: (analytics) => {
+        this.stats.set({
+          totalUsers: analytics.totalUsers,
+          totalVendors: analytics.totalVendors,
+          activeVendors: analytics.activeVendors,
+          totalBuses: analytics.totalBuses,
+          activeBuses: analytics.activeBuses,
+          totalBookings: analytics.totalBookings,
+          confirmedBookings: analytics.confirmedBookings,
+          cancelledBookings: analytics.cancelledBookings,
+          totalRoutes: analytics.totalRoutes,
+          totalRevenue: analytics.totalRevenue
+        });
+        this.mostTravelledRoutes.set(analytics.mostTravelledRoutes || []);
+        this.peakTravelDates.set(analytics.peakTravelDates || []);
+        this.vendorPerformance.set(analytics.vendorPerformance || []);
+        this.busTypeDistribution.set(analytics.busTypeDistribution || []);
+      },
+      error: (err) => this.actionError.set('Failed to load analytics.')
     });
 
-    // Load analytics
-    this.mostTravelledRoutes.set(this.adminService.getMostTravelledRoutes());
-    this.peakTravelDates.set(this.adminService.getPeakTravelDates());
-    this.vendorPerformance.set(this.adminService.getVendorPerformance());
-    this.busTypeDistribution.set(this.adminService.getBusTypeDistribution());
+    // Load vendors
+    this.adminService.getVendors().subscribe({
+      next: (vendors) => this.vendors.set(vendors),
+      error: () => this.vendors.set([])
+    });
+
+    // Load users
+    this.adminService.getAllUsers().subscribe({
+      next: (users) => this.users.set(users),
+      error: () => this.users.set([])
+    });
+
+    // Load buses
+    this.adminService.getAllBuses().subscribe({
+      next: (buses) => this.buses.set(buses),
+      error: () => this.buses.set([])
+    });
+
+    // Load bookings
+    this.adminService.getAllBookings().subscribe({
+      next: (bookings) => this.bookings.set(bookings),
+      error: () => this.bookings.set([])
+    });
+
+    // Load routes (static)
+    this.routes.set(this.adminService.getAllRoutes());
   }
 
   switchTab(tab: TabType): void {
@@ -92,27 +115,34 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   toggleVendorStatus(vendorId: string): void {
-    const result = this.adminService.toggleVendorStatus(vendorId);
-    if (result.success) {
-      this.actionMessage.set(result.message);
-      this.loadAllData();
-    } else {
-      this.actionError.set(result.message);
-    }
-    setTimeout(() => {
-      this.actionMessage.set('');
-      this.actionError.set('');
-    }, 3000);
+    this.adminService.toggleVendorStatus(vendorId).subscribe({
+      next: (result) => {
+        this.actionMessage.set(result.message);
+        this.loadAllData();
+        this.clearMessages();
+      },
+      error: (err) => {
+        this.actionError.set(err.message || 'Failed to toggle vendor status.');
+        this.clearMessages();
+      }
+    });
   }
 
   toggleBusStatus(busId: string): void {
-    const result = this.adminService.toggleBusStatus(busId);
-    if (result.success) {
-      this.actionMessage.set(result.message);
-      this.loadAllData();
-    } else {
-      this.actionError.set(result.message);
-    }
+    this.adminService.toggleBusStatus(busId).subscribe({
+      next: (result) => {
+        this.actionMessage.set(result.message);
+        this.loadAllData();
+        this.clearMessages();
+      },
+      error: (err) => {
+        this.actionError.set(err.message || 'Failed to toggle bus status.');
+        this.clearMessages();
+      }
+    });
+  }
+
+  private clearMessages(): void {
     setTimeout(() => {
       this.actionMessage.set('');
       this.actionError.set('');

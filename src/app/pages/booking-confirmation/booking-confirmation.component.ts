@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { BookingService } from '../../services/booking.service';
@@ -15,11 +15,14 @@ export class BookingConfirmationComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private bookingService = inject(BookingService);
 
-  booking: Booking | undefined;
+  booking = signal<Booking | undefined>(undefined);
 
   ngOnInit(): void {
     const bookingId = this.route.snapshot.params['id'];
-    this.booking = this.bookingService.getBookingById(bookingId);
+    this.bookingService.getBookingById(bookingId).subscribe({
+      next: (booking) => this.booking.set(booking),
+      error: () => this.booking.set(undefined)
+    });
   }
 
   formatDate(dateStr: string): string {

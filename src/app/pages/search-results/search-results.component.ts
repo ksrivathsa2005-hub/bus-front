@@ -38,13 +38,26 @@ export class SearchResultsComponent implements OnInit {
   }
 
   private searchBuses(): void {
+    // Stop API call if any required field is missing
+    if (!this.from || !this.to || !this.date) {
+      console.warn('Search blocked: missing required fields (from, to, or date)');
+      this.isLoading.set(false);
+      this.buses.set([]);
+      return;
+    }
+
     this.isLoading.set(true);
 
-    setTimeout(() => {
-      const results = this.busService.searchBuses(this.from, this.to, this.date);
-      this.buses.set(results);
-      this.isLoading.set(false);
-    }, 800);
+    this.busService.searchBuses(this.from, this.to, this.date).subscribe({
+      next: (results) => {
+        this.buses.set(results);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.buses.set([]);
+        this.isLoading.set(false);
+      }
+    });
   }
 
   selectBus(bus: Bus): void {
@@ -66,6 +79,13 @@ export class SearchResultsComponent implements OnInit {
       month: 'long',
       day: 'numeric'
     });
+  }
+
+  getAmenitiesArray(amenities: string | string[] | undefined): string[] {
+    if (!amenities) return [];
+    if (Array.isArray(amenities)) return amenities;
+    // If it's a comma-separated string, split it
+    return amenities.split(',').map(a => a.trim()).filter(a => a.length > 0);
   }
 
   getAmenityIcon(amenity: string): string {

@@ -128,12 +128,15 @@ export class HomeComponent {
       return;
     }
 
-    const result = this.authService.login(this.loginEmail, this.loginPassword);
-    if (!result.success) {
-      this.loginError = result.message;
-    } else {
-      this.loginEmail = '';
-      this.loginPassword = '';
-    }
+    this.authService.login(this.loginEmail, this.loginPassword).subscribe({
+      next: () => {
+        this.loginEmail = '';
+        this.loginPassword = '';
+        this.loginError = '';
+      },
+      error: (err) => {
+        this.loginError = err.message || 'Login failed.';
+      }
+    });
   }
 }

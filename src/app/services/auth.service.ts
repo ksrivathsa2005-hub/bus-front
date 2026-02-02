@@ -1,157 +1,150 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, tap, catchError, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { User } from '../models';
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+  message: string;
+}
+
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+  city?: string;
+  preferredFrom?: string;
+  preferredTo?: string;
+  bio?: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+
   private currentUserSignal = signal<User | null>(null);
   private isAuthenticatedSignal = signal<boolean>(false);
 
   currentUser = this.currentUserSignal.asReadonly();
   isAuthenticated = this.isAuthenticatedSignal.asReadonly();
 
-  // Demo accounts
-  private demoAccounts: User[] = [
-    {
-      id: 'ADMIN-001',
-      fullName: 'Admin User',
-      email: 'admin@njc.com',
-      phone: '9999999999',
-      password: 'admin123',
-      city: 'Chennai',
-      preferredFrom: 'Chennai',
-      preferredTo: 'Bengaluru',
-      bio: 'System Administrator',
-      createdAt: new Date('2020-01-01')
-    },
-    {
-      id: 'VENDOR-001',
-      fullName: 'Vendor User',
-      email: 'vendor@njc.com',
-      phone: '8888888888',
-      password: 'vendor123',
-      city: 'Bengaluru',
-      preferredFrom: 'Bengaluru',
-      preferredTo: 'Chennai',
-      bio: 'Bus Operator Partner',
-      createdAt: new Date('2021-01-01')
-    },
-    {
-      id: 'DEMO-001',
-      fullName: 'Demo Traveler',
-      email: 'demo@njc.com',
-      phone: '7777777777',
-      password: 'demo123',
-      city: 'Kochi',
-      preferredFrom: 'Kochi',
-      preferredTo: 'Chennai',
-      bio: 'The Night Owl - I travel when the world sleeps',
-      createdAt: new Date('2023-01-01')
-    }
-  ];
-
   constructor() {
-    this.seedDemoAccounts();
     this.checkStoredAuth();
   }
 
-  private seedDemoAccounts(): void {
-    const users = this.getUsers();
-    let updated = false;
-
-    this.demoAccounts.forEach(demoAccount => {
-      if (!users.find(u => u.email === demoAccount.email)) {
-        users.push(demoAccount);
-        updated = true;
-      }
-    });
-
-    if (updated) {
-      localStorage.setItem('users', JSON.stringify(users));
-    }
-  }
-
   private checkStoredAuth(): void {
+    const token = localStorage.getItem('authToken');
     const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      this.currentUserSignal.set(user);
-      this.isAuthenticatedSignal.set(true);
+
+    if (token && storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        this.currentUserSignal.set(user);
+        this.isAuthenticatedSignal.set(true);
+      } catch {
+        this.clearAuth();
+      }
     }
   }
 
-  login(email: string, password: string): { success: boolean; message: string } {
-    const users = this.getUsers();
-    const user = users.find(u => u.email === email && u.password === password);
-
-    if (user) {
-      this.currentUserSignal.set(user);
-      this.isAuthenticatedSignal.set(true);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      return { success: true, message: 'Welcome back, Traveler.' };
-    }
-
-    return { success: false, message: 'Invalid credentials. The route remains closed.' };
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, password })
+      .pipe(
+        tap(response => {
+          if (response.token) {
+            localStorage.setItem('authToken', response.token);
+            localStorage.setItem('currentUser', JSON.stringify(response.user));
+            this.currentUserSignal.set(response.user);
+            this.isAuthenticatedSignal.set(true);
+          }
+        }),
+        catchError(this.handleError)
+      );
   }
 
-  register(user: Omit<User, 'id' | 'createdAt'>): { success: boolean; message: string } {
-    const users = this.getUsers();
+  register(userData: RegisterRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/register`, userData)
+      .pipe(
+        tap(response => {
+          if (response.token) {
+            localStorage.setItem('authToken', response.token);
+            localStorage.setItem('currentUser', JSON.stringify(response.user));
+            this.currentUserSignal.set(response.user);
+            this.isAuthenticatedSignal.set(true);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
 
-    if (users.find(u => u.email === user.email)) {
-      return { success: false, message: 'A traveler with this identity already exists.' };
-    }
+  getProfile(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/auth/profile`)
+      .pipe(
+        tap(user => {
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          this.currentUserSignal.set(user);
+        }),
+        catchError(this.handleError)
+      );
+  }
 
-    const newUser: User = {
-      ...user,
-      id: this.generateId(),
-      createdAt: new Date()
-    };
-
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    // Auto login after registration
-    this.currentUserSignal.set(newUser);
-    this.isAuthenticatedSignal.set(true);
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-
-    return { success: true, message: 'Welcome to the Night Journey Club.' };
+  updateProfile(updates: Partial<User>): Observable<ApiResponse<User>> {
+    return this.http.put<ApiResponse<User>>(`${this.apiUrl}/auth/profile`, updates)
+      .pipe(
+        tap(response => {
+          if (response.data) {
+            localStorage.setItem('currentUser', JSON.stringify(response.data));
+            this.currentUserSignal.set(response.data);
+          }
+        }),
+        catchError(this.handleError)
+      );
   }
 
   logout(): void {
+    this.clearAuth();
+  }
+
+  private clearAuth(): void {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
     this.currentUserSignal.set(null);
     this.isAuthenticatedSignal.set(false);
-    localStorage.removeItem('currentUser');
   }
 
-  updateProfile(updates: Partial<User>): { success: boolean; message: string } {
-    const currentUser = this.currentUserSignal();
-    if (!currentUser) {
-      return { success: false, message: 'No active session.' };
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An error occurred. Please try again.';
+
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = error.error.message;
+    } else {
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.status === 401) {
+        errorMessage = 'Invalid credentials. The route remains closed.';
+      } else if (error.status === 409) {
+        errorMessage = 'A traveler with this identity already exists.';
+      } else if (error.status === 0) {
+        errorMessage = 'Unable to connect to server. Please check your connection.';
+      }
     }
 
-    const updatedUser = { ...currentUser, ...updates };
-    const users = this.getUsers();
-    const index = users.findIndex(u => u.id === currentUser.id);
-
-    if (index !== -1) {
-      users[index] = updatedUser;
-      localStorage.setItem('users', JSON.stringify(users));
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      this.currentUserSignal.set(updatedUser);
-      return { success: true, message: 'Your journey profile has been updated.' };
-    }
-
-    return { success: false, message: 'Failed to update profile.' };
+    return throwError(() => ({ success: false, message: errorMessage }));
   }
 
-  private getUsers(): User[] {
-    const stored = localStorage.getItem('users');
-    return stored ? JSON.parse(stored) : [];
-  }
-
-  private generateId(): string {
-    return 'USR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
   }
 }

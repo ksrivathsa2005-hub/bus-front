@@ -33,7 +33,6 @@
               [attr.y2]="coords.y2"
               class="route-line"
               [class.selected]="isRouteSelected(route)"
-              [class.has-journeys]="getPastJourneysForRoute(route) > 0"
               (click)="selectRoute(route)"
             />
           }
@@ -130,27 +129,29 @@
               </div>
               <div class="stat">
                 <span class="stat-icon">🚌</span>
-                <span class="stat-value">{{ getBusesForRoute(route).length }}</span>
+                <span class="stat-value">{{ routeBuses().length }}</span>
                 <span class="stat-label">Buses</span>
               </div>
             </div>
 
-            @if (getPastJourneysForRoute(route) > 0) {
+            @if (routePastJourneys() > 0) {
               <div class="journey-history">
                 <span class="history-badge">
-                  🎫 You've traveled this route {{ getPastJourneysForRoute(route) }} time(s)
+                  🎫 You've traveled this route {{ routePastJourneys() }} time(s)
                 </span>
               </div>
             }
 
             <div class="available-buses">
               <h3>Available Buses</h3>
-              @for (bus of getBusesForRoute(route); track bus.id) {
+              @for (bus of routeBuses(); track bus.id) {
                 <div class="bus-item">
                   <span class="bus-name">{{ bus.name }}</span>
                   <span class="bus-type">{{ bus.type }}</span>
                   <span class="bus-fare">₹{{ bus.fare }}</span>
                 </div>
+              } @empty {
+                <p class="no-buses">No buses available at the moment.</p>
               }
             </div>
 
@@ -198,7 +199,6 @@
         <div
           class="route-card"
           [class.selected]="isRouteSelected(route)"
-          [class.traveled]="getPastJourneysForRoute(route) > 0"
           (click)="selectRoute(route)"
         >
           <div class="route-header">
@@ -211,11 +211,6 @@
             <span>•</span>
             <span>{{ route.duration }}</span>
           </div>
-          @if (getPastJourneysForRoute(route) > 0) {
-            <div class="traveled-badge">
-              ✓ Traveled
-            </div>
-          }
         </div>
       }
     </div>

@@ -67,17 +67,15 @@ export class AdminLoginComponent {
 
     const { email, password } = this.loginForm.value;
 
-    // Simulate network delay
-    setTimeout(() => {
-      const result = this.adminService.adminLogin(email, password);
-
-      if (result.success) {
+    this.adminService.adminLogin(email, password).subscribe({
+      next: (response) => {
         this.router.navigate(['/admin/dashboard']);
-      } else {
-        this.errorMessage.set(result.message);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        this.errorMessage.set(error.message || 'Access denied. Invalid credentials.');
+        this.isLoading.set(false);
       }
-
-      this.isLoading.set(false);
-    }, 800);
+    });
   }
 }

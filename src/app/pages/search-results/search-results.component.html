@@ -79,7 +79,7 @@
 
             <!-- Bus Amenities -->
             <div class="bus-amenities">
-              @for (amenity of bus.amenities; track amenity) {
+              @for (amenity of getAmenitiesArray(bus.amenities); track $index) {
                 <span class="amenity" [title]="amenity">
                   {{ getAmenityIcon(amenity) }}
                 </span>

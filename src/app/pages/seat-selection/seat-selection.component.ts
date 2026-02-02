@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { BusService } from '../../services/bus.service';
 import { AuthService } from '../../services/auth.service';
 import { BookingService } from '../../services/booking.service';
@@ -37,10 +38,24 @@ export class SeatSelectionComponent implements OnInit {
     const busId = this.route.snapshot.params['id'];
     this.date = this.route.snapshot.queryParams['date'] || '';
 
-    this.bus = this.busService.getBusById(busId);
-    if (this.bus) {
-      this.seats = this.busService.getSeatsForBus(busId);
-    }
+    this.isLoading.set(true);
+
+    // Load bus and booked seats
+    forkJoin({
+      bus: this.busService.getBusById(busId),
+      bookedSeats: this.busService.getBookedSeats(busId, this.date)
+    }).subscribe({
+      next: ({ bus, bookedSeats }) => {
+        this.bus = bus;
+        if (bus) {
+          this.seats = this.busService.generateSeatsForBus(bus, bookedSeats);
+        }
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+      }
+    });
 
     this.initForm();
   }
@@ -216,8 +231,7 @@ export class SeatSelectionComponent implements OnInit {
 
     this.isLoading.set(true);
 
-    const booking = {
-      userId: this.currentUser()!.id,
+    const bookingData = {
       busId: this.bus.id,
       busName: this.bus.name,
       from: this.bus.from,
@@ -230,11 +244,18 @@ export class SeatSelectionComponent implements OnInit {
       totalFare: this.totalFare
     };
 
-    setTimeout(() => {
-      const newBooking = this.bookingService.createBooking(booking);
-      this.router.navigate(['/booking-confirmation', newBooking.id]);
-      this.isLoading.set(false);
-    }, 1500);
+    this.bookingService.createBooking(bookingData).subscribe({
+      next: (response) => {
+        if (response.booking) {
+          this.router.navigate(['/booking-confirmation', response.booking.id]);
+        }
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.validationError.set(err.message || 'Failed to create booking. Please try again.');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   getSeatRows(): Seat[][] {

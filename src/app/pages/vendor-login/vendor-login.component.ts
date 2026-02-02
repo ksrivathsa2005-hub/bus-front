@@ -67,16 +67,15 @@ export class VendorLoginComponent {
 
     const { email, password } = this.loginForm.value;
 
-    setTimeout(() => {
-      const result = this.vendorService.vendorLogin(email, password);
-
-      if (result.success) {
+    this.vendorService.vendorLogin(email, password).subscribe({
+      next: (response) => {
         this.router.navigate(['/vendor/dashboard']);
-      } else {
-        this.errorMessage.set(result.message);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        this.errorMessage.set(error.message || 'Access denied. Invalid credentials.');
+        this.isLoading.set(false);
       }
-
-      this.isLoading.set(false);
-    }, 800);
+    });
   }
 }

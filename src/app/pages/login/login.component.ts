@@ -62,18 +62,16 @@ export class LoginComponent {
 
     const { email, password } = this.loginForm.value;
 
-    // Simulate network delay
-    setTimeout(() => {
-      const result = this.authService.login(email, password);
-
-      if (result.success) {
+    this.authService.login(email, password).subscribe({
+      next: (response) => {
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
         this.router.navigateByUrl(returnUrl);
-      } else {
-        this.errorMessage.set(result.message);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        this.errorMessage.set(error.message || 'Login failed. Please try again.');
+        this.isLoading.set(false);
       }
-
-      this.isLoading.set(false);
-    }, 800);
+    });
   }
 }

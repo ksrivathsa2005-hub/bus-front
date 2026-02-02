@@ -132,22 +132,21 @@ export class MyProfileComponent implements OnInit {
       bio: this.profileForm.value.bio
     };
 
-    setTimeout(() => {
-      const result = this.authService.updateProfile(updates);
-      if (result.success) {
-        this.successMessage.set(result.message);
+    this.authService.updateProfile(updates).subscribe({
+      next: (response) => {
+        this.successMessage.set(response.message || 'Profile updated successfully.');
         this.isEditing.set(false);
-      } else {
-        this.errorMessage.set(result.message);
+        this.isSaving.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.message || 'Failed to update profile.');
+        this.isSaving.set(false);
       }
-      this.isSaving.set(false);
-    }, 800);
+    });
   }
 
   get totalBookings(): number {
-    const user = this.currentUser();
-    if (!user) return 0;
-    return this.bookingService.getUserBookings(user.id).length;
+    return 0; // Will be loaded from bookings
   }
 
   get memberSince(): string {

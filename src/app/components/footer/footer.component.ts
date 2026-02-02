@@ -10,7 +10,6 @@ import { RouterModule } from '@angular/router';
   styleUrl: './footer.component.scss'
 })
 export class FooterComponent implements OnInit {
-
   currentYear = new Date().getFullYear();
   currentQuote = '';
 
@@ -27,22 +26,8 @@ export class FooterComponent implements OnInit {
     "A traveler without observation is a bird without wings."
   ];
 
-  currentStationTime = '';
-
   ngOnInit(): void {
     this.currentQuote = this.retroQuotes[Math.floor(Math.random() * this.retroQuotes.length)];
-    this.updateStationTime();
-    setInterval(() => this.updateStationTime(), 1000);
-  }
-
-  updateStationTime(): void {
-    const now = new Date();
-    this.currentStationTime = now.toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
   }
 
   get dynamicYear(): string {

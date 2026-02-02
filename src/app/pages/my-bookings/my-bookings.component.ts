@@ -27,16 +27,19 @@ export class MyBookingsComponent implements OnInit {
   }
 
   private loadBookings(): void {
-    const user = this.currentUser();
-    if (user) {
-      setTimeout(() => {
-        const userBookings = this.bookingService.getUserBookings(user.id);
-        this.bookings.set(userBookings.sort((a, b) =>
+    this.isLoading.set(true);
+    this.bookingService.getMyBookings().subscribe({
+      next: (bookings) => {
+        this.bookings.set(bookings.sort((a, b) =>
           new Date(b.bookedAt).getTime() - new Date(a.bookedAt).getTime()
         ));
         this.isLoading.set(false);
-      }, 500);
-    }
+      },
+      error: () => {
+        this.bookings.set([]);
+        this.isLoading.set(false);
+      }
+    });
   }
 
   // Check if booking can be cancelled (at least 4 hours before departure)
@@ -84,10 +87,17 @@ export class MyBookingsComponent implements OnInit {
     }
 
     if (confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-      this.bookingService.cancelBooking(booking.id);
-      this.cancellationMessage.set('Booking cancelled successfully. Refund will be processed within 5-7 business days.');
-      setTimeout(() => this.cancellationMessage.set(''), 5000);
-      this.loadBookings();
+      this.bookingService.cancelBooking(booking.id).subscribe({
+        next: () => {
+          this.cancellationMessage.set('Booking cancelled successfully. Refund will be processed within 5-7 business days.');
+          setTimeout(() => this.cancellationMessage.set(''), 5000);
+          this.loadBookings();
+        },
+        error: (err) => {
+          this.cancellationError.set(err.message || 'Failed to cancel booking.');
+          setTimeout(() => this.cancellationError.set(''), 5000);
+        }
+      });
     }
   }
 
